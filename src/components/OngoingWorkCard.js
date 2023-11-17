@@ -1,14 +1,23 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View, FlatList } from 'react-native'
 import React from 'react'
 
-const OngoingWorkCard = () => {
+const OngoingWorkCard = ({ jobAds }) => {
   return (
     <View>
-      <Text>OngoingWorkCard</Text>
+      <FlatList
+        data={jobAds}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View>
+            <Text>{item.title}</Text>
+            <Text>{item.description}</Text>
+          </View>
+        )}
+      />
     </View>
-  )
-}
+  );
+};
 
-export default OngoingWorkCard
+export default OngoingWorkCard;
 
 const styles = StyleSheet.create({})

@@ -11,4 +11,8 @@ export default StyleSheet.create({
         fontSize: 18,
         fontWeight: '400',
     },
+    btnBody: { 
+        fontSize: 16, 
+        fontWeight: '400',
+    },
 })
