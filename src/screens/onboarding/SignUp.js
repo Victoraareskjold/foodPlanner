@@ -5,52 +5,45 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { auth, db } from "../../../firebase";
 import { getFirestore, doc, setDoc } from "firebase/firestore";
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import { onAuthStateChanged, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
 
 import OnboardingStyles from '../../../styles/OnboardingStyles'
 import Colors from '../../../styles/Colors';
 import containerStyles from "../../../styles/containerStyles";
 
-export default function SetupName({ navigation }) {
+export default function CreateUser({ route, navigation }) {
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
+
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [error, setError] = useState(null);
     
-    const firstNameRef = useRef(null);
+    const emailRef = useRef(null);
 
     /* Set focus on load */
     useEffect(() => {
-        if (firstNameRef.current) {
-            firstNameRef.current.focus();
+        if (emailRef.current) {
+            emailRef.current.focus();
         }
     }, []); // Tom avhengighetsarray betyr at effekten kjøres ved montering
 
-    let [validationMessage, setValidationMessage] = useState('');
-
-    let validateAndSet = (value, valueToCompare, setValue) => {
-        if (value !== valueToCompare) {
-            setValidationMessage('Passordene er ikke like');
-        } else {
-            setValidationMessage('');
+    const createAccount = async () => {
+        try {
+          if (password === confirmPassword) {
+            await createUserWithEmailAndPassword(auth, email, password);
+            console.log('Bruker opprettet!');
+            navigation.navigate('DinSideStack')
+          } else {
+            setError("Passwords don't match");
+          }
+        } catch (e) {
+          setError('There was a problem creating your account');
+          console.log(e)
         }
-        setValue(value);
-    };
-
-    let storeDataAndContinue = () => {
-        if (!firstName || !lastName) {
-            setValidationMessage('Vennligst fyll ut alle feltene');
-            return;
-        }
-        
-        navigation.navigate("SignUp", {
-            firstName: firstName,
-            lastName: lastName,
-        });
-    };
-
-    /* Capitalize words */
-    const capitalizeWords = (str) => 
-    str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+      };            
 
     return (
         <KeyboardAvoidingView 
@@ -77,35 +70,45 @@ export default function SetupName({ navigation }) {
                 </Text>
 
                 {/* First name */}
-                <Text>Fornavn & mellomnavn</Text>
+                <Text>Din e-post adresse</Text>
                 <TextInput
-                    ref={firstNameRef}
-                    style={{ marginTop: 4 }}
+                    ref={emailRef}
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
                     placeholderTextColor="#aaa"
-                    placeholder="Ola Nordmann"
-                    value={firstName}
-                    onChangeText={(text) => setFirstName(capitalizeWords(text))}
+                    style={{ marginTop: 4 }}
+                    placeholder="Ola.Nordmann@gmail.com"
                 ></TextInput>
 
-                {/* Last name */}
-                <Text>Etternavn</Text>
+                {/* Password */}
+                <Text>Velg et passord</Text>
                 <TextInput 
                     style={{ marginTop: 4 }}
                     placeholderTextColor="#aaa"
-                    placeholder='Hansen'
-                    value={lastName}
-                    onChangeText={text => setLastName(capitalizeWords(text))}
+                    placeholder='* * * * * *'
+                    value={password}
+                    onChangeText={setPassword}
                 ></TextInput>
 
-            {/* Validation message */}
-            <View style={containerStyles.errorMessageContainer}>
-                <Text style={containerStyles.errorMessageContainer}>{validationMessage}</Text>
-            </View>
+                {/* Confirm password */}
+                <Text>Bekreft passord</Text>
+                <TextInput 
+                    style={{ marginTop: 4 }}
+                    placeholderTextColor="#aaa"
+                    placeholder='* * * * * *'
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                ></TextInput>
 
-            {/* Log inn */}
+                {error && <Text>{error}</Text>}
+
+                {/* Log inn */}
                 <TouchableOpacity
-                    onPress={storeDataAndContinue}
                     style={{ position: 'absolute', bottom: 12}}
+                    onPress={createAccount}
+                    disabled={!email || !password || !confirmPassword}
                 >
                     <Text>Gå videre</Text>
                 </TouchableOpacity>

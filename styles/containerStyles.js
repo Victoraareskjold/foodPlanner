@@ -1,7 +1,7 @@
 import Colors from "./Colors";
 
 export default {
-    headerContainer: {
+    defaultContainer: {
         paddingHorizontal: 20,
         marginTop: 32,
     },

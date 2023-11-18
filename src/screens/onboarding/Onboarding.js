@@ -1,16 +1,30 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, Image, TouchableOpacity, SafeAreaView } from 'react-native'
 import React from 'react'
 import { useNavigation } from '@react-navigation/native'
-import { SafeAreaView } from 'react-native'
+import { useState, useEffect, useRef } from 'react'
+
+import { onAuthStateChanged } from 'firebase/auth';
+
+import { auth } from '../../../firebase';
 
 import OnboardingAssets from './OnboardingAssets'
 import Slider from '../../components/Slider'
 import OnboardingStyles from '../../../styles/OnboardingStyles'
 import Colors from '../../../styles/Colors'
 
-const Onboarding = () => {
+export default function Onboarding () {
 
     const navigation = useNavigation();
+
+    const [loggedIn, setLoggedIn] = useState(false);
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+          setLoggedIn(true);
+        } else {
+          setLoggedIn(false);
+        }
+      });
 
     return (
         <SafeAreaView style={{flex:1, backgroundColor: Colors.white,}}>
@@ -31,6 +45,7 @@ const Onboarding = () => {
                 <View style={OnboardingStyles.buttonsContainer}>
                     <TouchableOpacity 
                         style={[OnboardingStyles.primaryBtn, { paddingHorizontal: 40, marginBottom: 6}]}
+                        onPress={() => navigation.navigate('Login')} // Legg til denne linjen for å navigere til 'SetupName'
                     >
                         <Text style={OnboardingStyles.linkText}>Logg inn</Text>
                     </TouchableOpacity>
@@ -45,7 +60,5 @@ const Onboarding = () => {
         </SafeAreaView>
     )
 }
-
-export default Onboarding
 
 const styles = StyleSheet.create({})

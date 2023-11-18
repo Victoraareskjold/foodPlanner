@@ -14,6 +14,7 @@ export default {
         alignItems: 'center',
     },
     mainContainer: {
+        backgroundColor: Colors.white,
         justifyContent: 'space-between',
     },
     sectionContainer: {

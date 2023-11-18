@@ -10,7 +10,7 @@ import buttons from '../../styles/buttons';
 import Colors from '../../styles/Colors';
 import fonts from '../../styles/fonts';
 import images from '../../styles/images';
-import ContainerStyles from '../../styles/ContainerStyles';
+import containerStyles from '../../styles/containerStyles';
 
 export default function DinSide() {
 
@@ -60,7 +60,7 @@ export default function DinSide() {
         </View>
 
         {/* Hva trenger du hjelp med? */}
-        <View style={containerStyles.headerContainer}>
+        <View style={containerStyles.defaultContainer}>
 
           <Text style={fonts.subHeader}>Hva trenger du hjelp med?</Text>
 
@@ -94,7 +94,7 @@ export default function DinSide() {
         </View>
 
         {/* Pågående arbeid */}
-        <View style={containerStyles.headerContainer}>
+        <View style={containerStyles.defaultContainer}>
 
           <Text style={fonts.subHeader}>Pågående arbeid</Text>
 

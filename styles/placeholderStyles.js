@@ -8,6 +8,6 @@ export default StyleSheet.create({
         paddingVertical: 16,
         paddingHorizontal: 16,
         marginBottom: 12,
-        borderRadius: 50,
+        borderRadius: 5,
     },
 })

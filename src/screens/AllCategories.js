@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import WorkCard from '../components/WorkCard';
 
-import ContainerStyles from '../../styles/ContainerStyles';
+import containerStyles from '../../styles/containerStyles';
 import placeholderStyles from '../../styles/placeholderStyles';
 import buttons from '../../styles/buttons';
 import fonts from '../../styles/fonts';
@@ -35,7 +35,7 @@ export default function CreateAd({ route }) {
         <SafeAreaView/>
           <ScrollView>
 
-            <View style={containerStyles.headerContainer}>
+            <View style={containerStyles.defaultContainer}>
 
               {/* cards */}
               <View style={styles.cardGrid}>

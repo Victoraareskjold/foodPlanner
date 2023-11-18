@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, TextInput, Keyb
 import { useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
-import ContainerStyles from '../../styles/ContainerStyles';
+import containerStyles from '../../styles/containerStyles';
 import placeholderStyles from '../../styles/placeholderStyles';
 import buttons from '../../styles/buttons';
 import fonts from '../../styles/fonts';
@@ -18,7 +18,7 @@ export default function CreateAd({ route }) {
         <SafeAreaView/>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding" enabled>
 
-          <View style={containerStyles.headerContainer}>
+          <View style={containerStyles.defaultContainer}>
 
             <TextInput 
               style={placeholderStyles.simple}

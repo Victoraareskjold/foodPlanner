@@ -9,8 +9,10 @@ import CreateAd from '../screens/CreateAd';
 import AllCategories from '../screens/AllCategories';
 
 import Onboarding from '../screens/onboarding/Onboarding';
+
+import Login from '../screens/onboarding/Login';
 import SetupName from '../screens/onboarding/SetupName';
-import CreateUser from '../screens/onboarding/CreateUser';
+import SignUp from '../screens/onboarding/SignUp';
 
 /* Tab bottom */
 /* const Tab = createBottomTabNavigator();
@@ -61,14 +63,20 @@ function LoginStackGroup() {
 
       <LoginStack.Screen 
         options={{ headerShown: false }}
+        name="Login"
+        component={Login}
+      />
+
+      <LoginStack.Screen 
+        options={{ headerShown: false }}
         name="SetupName" 
         component={SetupName} 
       />
 
       <LoginStack.Screen 
         options={{ headerShown: false }}
-        name="CreateUser"
-        component={CreateUser}
+        name="SignUp"
+        component={SignUp}
       />
 
       <LoginStack.Screen 
