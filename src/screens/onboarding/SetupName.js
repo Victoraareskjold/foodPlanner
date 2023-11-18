@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from '@expo/vector-icons';
 
 import { auth, db } from "../../../firebase";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
+import { getFirestore, doc, setDoc, collection, addDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 
 import OnboardingStyles from '../../../styles/OnboardingStyles'
@@ -15,7 +15,7 @@ export default function SetupName({ navigation }) {
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
-    
+
     const firstNameRef = useRef(null);
 
     /* Set focus on load */
