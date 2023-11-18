@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import WorkCard from '../components/WorkCard';
 import OngoingWorkCard from '../components/OngoingWorkCard';
 import { categories } from '../components/Categories';
+import ProfileModal from '../components/ProfileModal';
 
 import buttons from '../../styles/buttons';
 import Colors from '../../styles/Colors';
@@ -17,6 +18,14 @@ export default function DinSide() {
   const navigation = useNavigation();
 
   const firstSixCategories = categories.slice(0, 6);
+
+  const [isProfileModalVisible, setProfileModalVisible] = useState(false);
+  const openProfileModal = () => {
+    setProfileModalVisible(true);
+  };
+  const closeProfileModal = () => {
+    setProfileModalVisible(false);
+  };
 
   const WorkCard = ({ color, icon, text, onPress }) => {
 
@@ -50,12 +59,15 @@ export default function DinSide() {
               />
             </TouchableOpacity>
 
-            <TouchableOpacity>
+            <TouchableOpacity onPress={openProfileModal}>
               <Image 
                 source={require('../../assets/user-1.png')}
                 style={[images.icon48, {marginLeft: 8}]}
               />
             </TouchableOpacity>
+
+            {/* Profilmodal */}
+            <ProfileModal isVisible={isProfileModalVisible} onClose={closeProfileModal} />
           </View>
         </View>
 
@@ -85,11 +97,6 @@ export default function DinSide() {
               />
             ))}
           </View>
-
-          {/* Se alle btn */}
-          {/* <TouchableOpacity style={buttons.btn1}>
-            <Text style={[fonts.btnBody, {color: '#218CC9'}]}>Se alle kategorier</Text>
-          </TouchableOpacity> */}
 
         </View>
 
