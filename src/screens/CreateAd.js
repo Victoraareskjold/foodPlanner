@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, TextInput, Keyb
 import { useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
-import containerStyles from '../../styles/containerStyles';
+import ContainerStyles from '../../styles/ContainerStyles';
 import placeholderStyles from '../../styles/placeholderStyles';
 import buttons from '../../styles/buttons';
 import fonts from '../../styles/fonts';

@@ -7,16 +7,30 @@ import OngoingWorkCard from '../components/OngoingWorkCard';
 import { categories } from '../components/Categories';
 
 import buttons from '../../styles/buttons';
-import colors from '../../styles/colors';
+import Colors from '../../styles/Colors';
 import fonts from '../../styles/fonts';
 import images from '../../styles/images';
-import containerStyles from '../../styles/containerStyles';
+import ContainerStyles from '../../styles/ContainerStyles';
 
 export default function DinSide() {
 
   const navigation = useNavigation();
 
   const firstSixCategories = categories.slice(0, 6);
+
+  const WorkCard = ({ color, icon, text, onPress }) => {
+
+    const textColor = text === 'Se alle' ? '#FFF' : '#272727'; // Endre farge basert på teksten
+  
+    return (
+      <TouchableOpacity onPress={onPress}>
+        <View style={[styles.card, { backgroundColor: color }]}>
+          <Image source={icon} style={styles.icon} />
+          <Text style={[styles.text, { color: textColor }]}>{text}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -68,7 +82,7 @@ export default function DinSide() {
                     navigation.navigate('CreateAd', { category: category.text });
                   }
                 }}
-            />
+              />
             ))}
           </View>
 
@@ -105,5 +119,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 20,
     rowGap: 16,
+  },
+  card: {
+    paddingVertical: 24,
+    paddingHorizontal: 8,
+    borderRadius: 5,
+    width: 108,
+    alignItems: 'center',
+  },
+  icon: {
+    width: 40,
+    height: 40,
+    marginBottom: 12,
+  },
+  text: {
+    color: '#272727',
+    fontSize: 16,
+    fontWeight: '500',
+    alignSelf: 'center',
   },
 });

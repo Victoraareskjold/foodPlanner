@@ -1,13 +1,13 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
+import colors from './Colors'
 
 export default StyleSheet.create({
     simple: {
-        borderColor: 'grey',
-        borderWidth: 1,
-        paddingHorizontal: 6,
-        paddingVertical: 12,
-        borderRadius: 5,
-        marginBottom: 8,
+        backgroundColor: colors.darkGrey,
+        paddingVertical: 16,
+        paddingHorizontal: 16,
+        marginBottom: 12,
+        borderRadius: 50,
     },
 })
