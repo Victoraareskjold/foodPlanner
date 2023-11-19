@@ -1,9 +1,13 @@
-import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Image } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Image, FlatList } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
+import { auth, db } from "../../firebase";
+import { collection, getDocs } from 'firebase/firestore';
+import { firestore } from '../../firebase';
+
 import WorkCard from '../components/WorkCard';
-import OngoingWorkCard from '../components/OngoingWorkCard';
+import AdCard from '../components/AdCard';
 import { categories } from '../components/Categories';
 import ProfileModal from '../components/ProfileModal';
 
@@ -40,6 +44,35 @@ export default function DinSide() {
       </TouchableOpacity>
     );
   };
+
+  const [adData, setAdData] = useState([]);
+
+  const fetchAdsFromDatabase = async () => {
+    try {
+      const adsCollectionRef = collection(db, 'annonser');
+      const adsSnapshot = await getDocs(adsCollectionRef);
+      const adsData = adsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      console.log('Fetched ads data:', adsData); // Legg til denne linjen
+      return adsData;
+    } catch (error) {
+      console.error('Error fetching ads data:', error);
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await fetchAdsFromDatabase();
+        console.log('Set ads data:', data); // Legg til denne linjen
+        setAdData(data);
+      } catch (error) {
+        console.error('Error setting ads data:', error);
+      }
+    };
+  
+    fetchData();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -106,7 +139,11 @@ export default function DinSide() {
           <Text style={fonts.subHeader}>Pågående arbeid</Text>
 
           <View>
-            <OngoingWorkCard/>
+            <FlatList
+              data={adData}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => <AdCard adData={item} />}
+            />
           </View>
 
         </View>
