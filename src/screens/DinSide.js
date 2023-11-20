@@ -52,7 +52,7 @@ export default function DinSide() {
       const adsCollectionRef = collection(db, 'annonser');
       const adsSnapshot = await getDocs(adsCollectionRef);
       const adsData = adsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      console.log('Fetched ads data:', adsData); // Legg til denne linjen
+      console.log('Fetched ads'); // Legg til denne linjen
       return adsData;
     } catch (error) {
       console.error('Error fetching ads data:', error);
@@ -64,14 +64,20 @@ export default function DinSide() {
     const fetchData = async () => {
       try {
         const data = await fetchAdsFromDatabase();
-        console.log('Set ads data:', data); // Legg til denne linjen
         setAdData(data);
       } catch (error) {
         console.error('Error setting ads data:', error);
       }
     };
   
+    // Hent data umiddelbart når komponenten lastes
     fetchData();
+  
+    // Sett opp periodisk henting av data hvert minutt
+    const intervalId = setInterval(fetchData, 60000);
+  
+    // Rydd opp i intervallet når komponenten blir avmontert
+    return () => clearInterval(intervalId);
   }, []);
 
   return (
@@ -140,6 +146,8 @@ export default function DinSide() {
 
           <View>
             <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
               data={adData}
               keyExtractor={(item) => item.id.toString()}
               renderItem={({ item }) => <AdCard adData={item} />}

@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 
 import { onAuthStateChanged } from 'firebase/auth';
 
-import { auth } from '../../../firebase';
+import { auth, getAuth } from '../../../firebase';
 
 import OnboardingAssets from './OnboardingAssets'
 import Slider from '../../components/Slider'
@@ -15,16 +15,6 @@ import Colors from '../../../styles/Colors'
 export default function Onboarding () {
 
     const navigation = useNavigation();
-
-    const [loggedIn, setLoggedIn] = useState(false);
-
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-          setLoggedIn(true);
-        } else {
-          setLoggedIn(false);
-        }
-      });
 
     return (
         <SafeAreaView style={{flex:1, backgroundColor: Colors.white,}}>

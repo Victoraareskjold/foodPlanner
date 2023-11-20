@@ -42,6 +42,7 @@ export default function SetupName({ navigation }) {
             setError('An account with this email already exists');
           } else {
             setError('There was a problem with your request');
+            console.log(error)
           }
         }
       };      
