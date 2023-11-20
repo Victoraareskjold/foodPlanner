@@ -144,7 +144,7 @@ export default function DinSide() {
 
           <Text style={fonts.subHeader}>Pågående arbeid</Text>
 
-          <View>
+          <View style={{ marginTop: 16 }}>
             <FlatList
               horizontal
               showsHorizontalScrollIndicator={false}

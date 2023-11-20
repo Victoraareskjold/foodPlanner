@@ -1,0 +1,67 @@
+import React from 'react';
+import { View, StyleSheet, TouchableOpacity, Text, Image, ScrollView } from 'react-native';
+import { categories } from './Categories';
+import { useState, useEffect, useRef } from 'react';
+import Colors from '../../styles/Colors';
+
+const CategoryButtons = ({ onSelectCategory  }) => {
+
+    const [activeCategory, setActiveCategory] = useState('');
+
+  const handleCategoryPress = (category) => {
+    setActiveCategory(category);
+    onSelectCategory(category);
+  };
+        
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.container}
+    >
+      <View style={styles.categoryContainer}>
+        {categories.map((category) => (
+          <TouchableOpacity
+            key={category.id}
+            style={[
+              styles.categoryButton,
+              { backgroundColor: category.color },
+              category.text === activeCategory && styles.activeCategory,
+            ]}
+            /* onPress={() => handleCategoryPress(category.text)} */
+          >
+            <Text style={styles.categoryText}>{category.text}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+    container: {},
+    categoryContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 10,
+    },
+    categoryButton: {
+      backgroundColor: Colors.grey,
+      marginRight: 8,
+      borderRadius: 50,
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      marginTop: 0,
+      marginBottom: 24,
+    },
+    categoryText: {
+      marginTop: 0,
+    },
+    activeCategory: {
+      // Customize the styles for the active category
+      backgroundColor: Colors.primary, // Use your primary color or any other color you prefer
+      color: Colors.white,
+    },
+  });
+
+export default CategoryButtons;
