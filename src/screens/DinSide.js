@@ -145,14 +145,16 @@ export default function DinSide() {
           <Text style={fonts.subHeader}>Pågående arbeid</Text>
 
           <View style={{ marginTop: 16 }}>
-            <FlatList
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              data={adData}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => <AdCard adData={item} />}
-            />
-          </View>
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={adData}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <AdCard adData={item} navigation={navigation} />
+            )}
+          />
+        </View>
 
         </View>
 

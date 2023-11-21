@@ -4,16 +4,12 @@ import React from 'react'
 import { categories } from './Categories';
 import Colors from '../../styles/Colors'
 
-const AdCard = (props) => {
-  
-  const { adData, navigation } = props;
+const AdCardList = ({ adData }) => {
+
   const category = categories.find(category => category.text === adData.kategori);
 
   return (
-    <TouchableOpacity 
-      style={styles.cardContainer}
-      onPress={() => navigation.navigate('AdView', { adData: adData })}
-    >
+    <TouchableOpacity style={styles.cardContainer}>
       <Image 
         source={require('../../assets/vedBilde.png')}
         style={styles.image}
@@ -32,7 +28,7 @@ const AdCard = (props) => {
   );
 };
 
-export default AdCard;
+export default AdCardList;
 
 const styles = StyleSheet.create({
   image: {
@@ -47,9 +43,9 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     borderRadius: 5,
-    width: 310,
+    width: '100%',
     backgroundColor: Colors.grey,
-    marginRight: 20,
+    marginBottom: 20,
   },
   textContainer: {
     padding: 16,

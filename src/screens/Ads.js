@@ -8,6 +8,7 @@ import { firestore } from '../../firebase';
 
 import WorkCard from '../components/WorkCard';
 import AdCard from '../components/AdCard';
+import AdCardList from '../components/AdCardList';
 import { categories } from '../components/Categories';
 import ProfileModal from '../components/ProfileModal';
 
@@ -79,11 +80,11 @@ export default function Ads() {
 
         </View>
 
-        <View>
+        <View style={containerStyles.defaultContainer}>
             <FlatList
                 data={adData}
                 keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => <AdCard adData={item} />}
+                renderItem={({ item }) => <AdCardList adData={item} />}
             />
         </View>
 
