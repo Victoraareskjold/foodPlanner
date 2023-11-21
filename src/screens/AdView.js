@@ -1,9 +1,9 @@
-import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Image, FlatList } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Image, FlatList, Alert } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
 import { auth, db } from "../../firebase";
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { firestore } from '../../firebase';
 
 import WorkCard from '../components/WorkCard';
@@ -19,6 +19,8 @@ import images from '../../styles/images';
 import containerStyles from '../../styles/containerStyles';
 
 const AdView = ({ route }) => {
+
+    const navigation = useNavigation();
     
     const { adData } = route.params;
 
@@ -41,6 +43,33 @@ const AdView = ({ route }) => {
         console.error('Feil ved oppdatering av status:', error);
       }
     };    
+
+    const handleDeleteAd = async () => {
+      try {
+        // Vis bekreftelsesdialog før sletting
+        Alert.alert(
+          'Bekreft sletting',
+          'Er du sikker på at du vil slette denne annonsen?',
+          [
+            {
+              text: 'Avbryt',
+              style: 'cancel',
+            },
+            {
+              text: 'Slett',
+              style: 'destructive',
+              onPress: async () => {
+                const adRef = doc(db, 'annonser', adData.id);
+                await deleteDoc(adRef);
+                navigation.goBack();
+              },
+            },
+          ]
+        );
+      } catch (error) {
+        console.error('Feil ved sletting av annonse:', error);
+      }
+    };
   
     return (
       <View style={styles.container}>
@@ -67,6 +96,12 @@ const AdView = ({ route }) => {
           <TouchableOpacity style={buttons.btn1} onPress={() => handleStatusUpdate('in progress')}>
             <Text style={[fonts.btnBody, { color: 'blue' }]}>
               Sett til "In Progress"
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[buttons.btn1, { backgroundColor: 'red' }]} onPress={handleDeleteAd}>
+            <Text style={[fonts.btnBody, { color: 'white' }]}>
+              Slett annonse
             </Text>
           </TouchableOpacity>
 

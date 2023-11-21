@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
 import { auth, db } from "../../firebase";
-import { collection, getDocs, where, query } from 'firebase/firestore'; // Correct import statements
+import { collection, getDocs, where, query, onSnapshot } from 'firebase/firestore'; // Correct import statements
 import { firestore } from '../../firebase';
 
 import WorkCard from '../components/WorkCard';
@@ -48,42 +48,31 @@ export default function DinSide() {
 
   const [adData, setAdData] = useState([]);
 
-  const fetchAdsFromDatabase = async (userUid) => {
-    try {
-      const adsCollectionRef = collection(db, 'annonser');
-      const adsSnapshot = await getDocs(query(adsCollectionRef, where('uid', '==', userUid))); // Correct usage of where and query
-      const adsData = adsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-
+  const fetchAdsFromDatabase = (userUid) => {
+    const adsCollectionRef = collection(db, 'annonser');
+    
+    // Set up a real-time listener for changes to the 'annonser' collection
+    const unsubscribe = onSnapshot(query(adsCollectionRef, where('uid', '==', userUid)), (snapshot) => {
+      const adsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       console.log('Fetched ads');
-      return adsData;
-    } catch (error) {
-      console.error('Error fetching ads data:', error);
-      throw error;
-    }
+      setAdData(adsData);
+    });
+  
+    // Clean up the listener when the component is unmounted
+    return unsubscribe;
   };
-
+  
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const user = auth.currentUser;
-        console.log('User UID:', user.uid);
-        if (user) {
-          const data = await fetchAdsFromDatabase(user.uid);
-          setAdData(data);
-        }
-      } catch (error) {
-        console.error('Error setting ads data:', error);
-      }
-    };
+    const user = auth.currentUser;
+    if (user) {
+      const unsubscribe = fetchAdsFromDatabase(user.uid);
   
-    // Fetch data immediately when the component is loaded
-    fetchData();
-  
-    const intervalId = setInterval(fetchData, 20000);
-  
-    // Clean up the interval when the component is unmounted
-    return () => clearInterval(intervalId);
-  }, []);
+      return () => {
+        // Clean up the listener when the component is unmounted
+        unsubscribe();
+      };
+    }
+  }, [auth.currentUser]);
 
   return (
     <ScrollView style={styles.container}>

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
 import { auth, db } from "../../firebase";
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot } from 'firebase/firestore';
 import { firestore } from '../../firebase';
 
 import WorkCard from '../components/WorkCard';
@@ -27,45 +27,56 @@ export default function Ads() {
 
   const [adData, setAdData] = useState([]);
 
-  // ...
-
-const fetchAdsFromDatabase = async () => {
-  try {
-    const adsCollectionRef = collection(db, 'annonser');
-    const adsSnapshot = await getDocs(adsCollectionRef);
-
-    // Filtrerer annonser basert på status 'not started'
-    const adsData = adsSnapshot.docs
-      .filter(doc => doc.data().status === 'not started')
-      .map((doc) => ({ id: doc.id, ...doc.data() }));
-
-    console.log('Fetched ads'); // Legg til denne linjen
-    return adsData;
-  } catch (error) {
-    console.error('Error fetching ads data:', error);
-    throw error;
-  }
-};
+  const fetchAdsFromDatabase = () => {
+    try {
+      const adsCollectionRef = collection(db, 'annonser');
+      
+      // Sett opp en sanntidslytter for endringer i 'annonser'-samlingen
+      const unsubscribe = onSnapshot(adsCollectionRef, (snapshot) => {
+        const adsData = snapshot.docs
+          .filter(doc => doc.data().status === 'not started')
+          .map((doc) => ({ id: doc.id, ...doc.data() }));
+  
+        console.log('Fetched all ads');
+        setAdData(adsData);
+      });
+  
+      // Rydd opp i lytteren når komponenten blir avmontert
+      return () => unsubscribe();
+    } catch (error) {
+      console.error('Error fetching ads data:', error);
+      throw error;
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchAdsFromDatabase = () => {
       try {
-        const data = await fetchAdsFromDatabase();
-        setAdData(data);
+        const adsCollectionRef = collection(db, 'annonser');
+        
+        // Sett opp en sanntidslytter for endringer i 'annonser'-samlingen
+        const unsubscribe = onSnapshot(adsCollectionRef, (snapshot) => {
+          const adsData = snapshot.docs
+            .filter(doc => doc.data().status === 'not started')
+            .map((doc) => ({ id: doc.id, ...doc.data() }));
+    
+          console.log('Fetched all ads');
+          setAdData(adsData);
+        });
+    
+        // Rydd opp i lytteren når komponenten blir avmontert
+        return () => unsubscribe();
       } catch (error) {
-        console.error('Feil ved oppdatering av annonser:', error);
+        console.error('Error fetching ads data:', error);
+        throw error;
       }
     };
-
-    // Hent data umiddelbart når komponenten lastes
-    fetchData();
-
-    // Sett opp periodisk henting av data hvert minutt
-    const intervalId = setInterval(fetchData, 20000);
-
-    // Rydd opp i intervallet når komponenten blir avmontert
-    return () => clearInterval(intervalId);
-  }, []);
+  
+    const unsubscribe = fetchAdsFromDatabase();
+  
+    // Rydd opp i lytteren når komponenten blir avmontert
+    return () => unsubscribe();
+  }, []);    
 
   return (
     <View style={styles.container}>
