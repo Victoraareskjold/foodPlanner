@@ -9,6 +9,7 @@ import placeholderStyles from '../../styles/placeholderStyles';
 import buttons from '../../styles/buttons';
 import fonts from '../../styles/fonts';
 import { categories } from '../components/Categories';
+import Colors from '../../styles/Colors';
 
 export default function CreateAd({ route }) {
 
@@ -20,7 +21,7 @@ export default function CreateAd({ route }) {
   
     return (
       <TouchableOpacity onPress={onPress}>
-        <View style={[styles.card, { backgroundColor: color }]}>
+        <View style={styles.card}>
           <Image source={icon} style={styles.icon} />
           <Text style={[styles.text, { color: textColor }]}>{text}</Text>
         </View>
@@ -42,8 +43,8 @@ export default function CreateAd({ route }) {
                 {filteredCategories.map((category) => (
                   <WorkCard
                     key={category.id}
-                    color={{backgroundColor: '#FFF'}}
-                    icon={category.icon}
+                    color={{backgroundColor: Colors.darkGrey}}
+                    /* icon={category.icon} */
                     text={category.text}
                 />
                 ))}
@@ -58,22 +59,21 @@ export default function CreateAd({ route }) {
 
 const styles = StyleSheet.create({
   card: {
-    borderBlockColor: 'grey',
-    borderBottomWidth: .25,
+    backgroundColor: Colors.lightGrey,
     flexDirection: 'row',
     paddingVertical: 20,
     paddingHorizontal: 12,
     borderRadius: 5,
     width: '100%',
     alignItems: 'center',
+    marginBottom: 8,
   },
-  icon: {
+/*   icon: {
     width: 24,
     height: 24,
     marginRight: 8,
-  },
+  }, */
   text: {
-    
     color: '#272727',
     fontSize: 16,
     fontWeight: '500',

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
 import { auth, db } from "../../firebase";
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, where, query } from 'firebase/firestore'; // Correct import statements
 import { firestore } from '../../firebase';
 
 import WorkCard from '../components/WorkCard';
@@ -48,12 +48,13 @@ export default function DinSide() {
 
   const [adData, setAdData] = useState([]);
 
-  const fetchAdsFromDatabase = async () => {
+  const fetchAdsFromDatabase = async (userUid) => {
     try {
       const adsCollectionRef = collection(db, 'annonser');
-      const adsSnapshot = await getDocs(adsCollectionRef);
+      const adsSnapshot = await getDocs(query(adsCollectionRef, where('uid', '==', userUid))); // Correct usage of where and query
       const adsData = adsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      console.log('Fetched ads'); // Legg til denne linjen
+
+      console.log('Fetched ads');
       return adsData;
     } catch (error) {
       console.error('Error fetching ads data:', error);
@@ -64,19 +65,23 @@ export default function DinSide() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetchAdsFromDatabase();
-        setAdData(data);
+        const user = auth.currentUser;
+        console.log('User UID:', user.uid);
+        if (user) {
+          const data = await fetchAdsFromDatabase(user.uid);
+          setAdData(data);
+        }
       } catch (error) {
         console.error('Error setting ads data:', error);
       }
     };
   
-    // Hent data umiddelbart når komponenten lastes
+    // Fetch data immediately when the component is loaded
     fetchData();
   
     const intervalId = setInterval(fetchData, 20000);
   
-    // Rydd opp i intervallet når komponenten blir avmontert
+    // Clean up the interval when the component is unmounted
     return () => clearInterval(intervalId);
   }, []);
 

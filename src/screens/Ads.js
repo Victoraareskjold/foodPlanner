@@ -27,18 +27,25 @@ export default function Ads() {
 
   const [adData, setAdData] = useState([]);
 
-  const fetchAdsFromDatabase = async () => {
-    try {
-      const adsCollectionRef = collection(db, 'annonser');
-      const adsSnapshot = await getDocs(adsCollectionRef);
-      const adsData = adsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      console.log('Fetched all ads'); // Legg til denne linjen
-      return adsData;
-    } catch (error) {
-      console.error('Feil ved henting av annonser:', error);
-      throw error;
-    }
-  };
+  // ...
+
+const fetchAdsFromDatabase = async () => {
+  try {
+    const adsCollectionRef = collection(db, 'annonser');
+    const adsSnapshot = await getDocs(adsCollectionRef);
+
+    // Filtrerer annonser basert på status 'not started'
+    const adsData = adsSnapshot.docs
+      .filter(doc => doc.data().status === 'not started')
+      .map((doc) => ({ id: doc.id, ...doc.data() }));
+
+    console.log('Fetched ads'); // Legg til denne linjen
+    return adsData;
+  } catch (error) {
+    console.error('Error fetching ads data:', error);
+    throw error;
+  }
+};
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,7 +61,7 @@ export default function Ads() {
     fetchData();
 
     // Sett opp periodisk henting av data hvert minutt
-    const intervalId = setInterval(fetchData, 60000);
+    const intervalId = setInterval(fetchData, 20000);
 
     // Rydd opp i intervallet når komponenten blir avmontert
     return () => clearInterval(intervalId);
@@ -80,6 +87,7 @@ export default function Ads() {
 
         <View style={containerStyles.defaultContainer}>
             <FlatList
+                ListEmptyComponent={<Text style={{ alignSelf: 'center', marginTop: 20 }}>Ingen annonser</Text>}
                 data={adData}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => <AdCardList adData={item} />}
