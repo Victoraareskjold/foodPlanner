@@ -28,7 +28,7 @@ const CategoryButtons = ({ onSelectCategory  }) => {
               { backgroundColor: category.color },
               category.text === activeCategory && styles.activeCategory,
             ]}
-            /* onPress={() => handleCategoryPress(category.text)} */
+            onPress={() => handleCategoryPress(category.text)}
           >
             <Text style={styles.categoryText}>{category.text}</Text>
           </TouchableOpacity>
@@ -46,16 +46,16 @@ const styles = StyleSheet.create({
       marginTop: 10,
     },
     categoryButton: {
-      backgroundColor: Colors.grey,
+      backgroundColor: Colors.primaryLight,
       marginRight: 8,
-      borderRadius: 50,
+      borderRadius: 5,
       paddingVertical: 8,
       paddingHorizontal: 16,
       marginTop: 0,
       marginBottom: 24,
     },
     categoryText: {
-      marginTop: 0,
+      
     },
     activeCategory: {
       // Customize the styles for the active category

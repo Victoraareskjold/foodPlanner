@@ -7,15 +7,15 @@ const StatusButton = ({ status }) => {
 
   const updateStatusStyle = () => {
     switch (status) {
-      case 'not started':
+      case 'Ikke startet':
         setStatusStyle(styles.notStarted);
         setBoxStyle(styles.boxNotStarted);
         break;
-      case 'in progress':
+      case 'Pågår':
         setStatusStyle(styles.inProgress);
         setBoxStyle(styles.boxInProgress);
         break;
-      case 'done':
+      case 'Fullført':
         setStatusStyle(styles.done);
         setBoxStyle(styles.boxDone);
         break;
@@ -38,31 +38,31 @@ const StatusButton = ({ status }) => {
 
 const styles = StyleSheet.create({
   box: {
-    marginTop: 8,
+    marginTop: 16,
     borderRadius: 5,
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
     paddingVertical: 4,
     alignSelf: 'flex-start',
   },
 
   boxNotStarted: {
-    backgroundColor: 'rgba(255, 0, 0, 0.1)',
+    backgroundColor: '#E3E2E0',
   },
   boxInProgress: {
-    backgroundColor: 'rgba(0, 0, 255, 0.1)',
+    backgroundColor: '#BCD7ED',
   },
   boxDone: {
-    backgroundColor: 'rgba(0, 255, 0, 0.1)',
+    backgroundColor: '#DBEDDB',
   },
   
   notStarted: {
-    color: 'red',
+    color: '#32302C',
   },
   inProgress: {
-    color: 'blue',
+    color: '#1B3E5D',
   },
   done: {
-    color: 'green',
+    color: '#6C9B7D',
   },
 });
 

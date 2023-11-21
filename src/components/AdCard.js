@@ -28,7 +28,7 @@ const AdCard = (props) => {
           {category && <Image source={category.icon} style={[styles.icon, { marginLeft: 8 }]} />}
         </View>
         <Text 
-          style={{ fontSize: 16, fontWeight: '400', color: 'rgba(0, 0, 0, 0.76)' }}
+          style={{ fontSize: 14, fontWeight: '400', color: 'rgba(0, 0, 0, 0.76)' }}
           numberOfLines={2}
         >{adData.beskrivelse}</Text>
 
@@ -54,7 +54,6 @@ const styles = StyleSheet.create({
     width: 24,
   },
   cardContainer: {
-    height: 'auto',
     borderRadius: 10,
     width: 300,
     backgroundColor: Colors.white,

@@ -30,24 +30,22 @@ export default function Ads() {
   const fetchAdsFromDatabase = () => {
     try {
       const adsCollectionRef = collection(db, 'annonser');
-      
-      // Sett opp en sanntidslytter for endringer i 'annonser'-samlingen
       const unsubscribe = onSnapshot(adsCollectionRef, (snapshot) => {
         const adsData = snapshot.docs
           .filter(doc => doc.data().status === 'not started')
+          .filter(doc => selectedCategory === '' || doc.data().kategori === selectedCategory) // Legg til denne linjen
           .map((doc) => ({ id: doc.id, ...doc.data() }));
   
         console.log('Fetched all ads');
         setAdData(adsData);
       });
   
-      // Rydd opp i lytteren når komponenten blir avmontert
       return () => unsubscribe();
     } catch (error) {
       console.error('Error fetching ads data:', error);
       throw error;
     }
-  };
+  };  
 
   useEffect(() => {
     const fetchAdsFromDatabase = () => {
@@ -78,6 +76,33 @@ export default function Ads() {
     return () => unsubscribe();
   }, []);    
 
+  const [selectedCategory, setSelectedCategory] = useState('');
+
+  const handleSelectCategory = (category) => {
+    setSelectedCategory(category);
+  };  
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const adsCollectionRef = collection(db, 'annonser');
+        const snapshot = await getDocs(adsCollectionRef);
+        const adsData = snapshot.docs
+          .filter(doc => doc.data().status === 'Ikke startet')
+          .filter(doc => selectedCategory === '' || doc.data().kategori === selectedCategory)
+          .map((doc) => ({ id: doc.id, ...doc.data() }));
+  
+        console.log('Fetched all ads');
+        setAdData(adsData);
+      } catch (error) {
+        console.error('Error fetching ads data:', error);
+        throw error;
+      }
+    };
+  
+    fetchData();
+  }, [selectedCategory]);  
+
   return (
     <View style={styles.container}>
       <SafeAreaView/>
@@ -92,7 +117,7 @@ export default function Ads() {
         <View style={containerStyles.defaultContainer}>
 
             <SearchBar placeholder={'Søk etter annonser'} />
-            <CategoryButtons />
+            <CategoryButtons onSelectCategory={handleSelectCategory} />
 
         </View>
 
