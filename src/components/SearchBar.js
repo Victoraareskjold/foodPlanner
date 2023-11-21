@@ -32,13 +32,10 @@ const styles = StyleSheet.create ({
         backgroundColor: '#FBFBFB',
         paddingVertical: 12,
         flexDirection: 'row',
-        borderRadius: 50,
+        borderRadius: 5,
         paddingHorizontal: 12,
         alignItems: 'center',
-
-        shadowcolor: '#',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0,
-        shadowradius: 0,
+        borderWidth: 1,
+        borderColor: Colors.lightGrey,
     },
 });

@@ -33,19 +33,19 @@ const ProfileModal = ({ isVisible, onClose }) => {
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
-  
-          <TouchableOpacity 
-            onPress={handleSignOut}
-            style={{padding: 12}}
-          >
-            <Text>Logg ut</Text>
-          </TouchableOpacity>
 
           <TouchableOpacity 
             onPress={onClose}
             style={{padding: 12}}
           >
             <Text>Lukk</Text>
+          </TouchableOpacity>
+  
+          <TouchableOpacity 
+            onPress={handleSignOut}
+            style={{padding: 12}}
+          >
+            <Text>Logg ut</Text>
           </TouchableOpacity>
 
         </View>
@@ -57,12 +57,16 @@ const ProfileModal = ({ isVisible, onClose }) => {
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
     position: 'absolute',
+    paddingHorizontal: 20,
+    paddingTop: 72,
     height: '100%',
     width: '100%',
   },
   modalContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 10,

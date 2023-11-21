@@ -3,13 +3,14 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
 import { auth, db } from "../../firebase";
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { firestore } from '../../firebase';
 
 import WorkCard from '../components/WorkCard';
 import AdCard from '../components/AdCard';
 import { categories } from '../components/Categories';
 import ProfileModal from '../components/ProfileModal';
+import StatusButton from '../components/StatusButton';
 
 import buttons from '../../styles/buttons';
 import Colors from '../../styles/Colors';
@@ -22,6 +23,24 @@ const AdView = ({ route }) => {
     const { adData } = route.params;
 
     const category = categories.find((category) => category.text === adData.kategori);
+
+    const [status, setStatus] = useState(adData.status);
+
+    const handleStatusUpdate = async (newStatus) => {
+      try {
+        // Oppdater statusen i komponentens tilstand
+        setStatus(newStatus);
+    
+        // Oppdater statusen i databasen
+        const adRef = doc(db, 'annonser', adData.id); // Anta at du har en unik id for hver annonse i adData
+        await updateDoc(adRef, { status: newStatus });
+    
+        // Gi tilbakemelding eller oppdater annen logikk etter behov
+        console.log(`Status updated to "${newStatus}"`);
+      } catch (error) {
+        console.error('Feil ved oppdatering av status:', error);
+      }
+    };    
   
     return (
       <View style={styles.container}>
@@ -45,7 +64,12 @@ const AdView = ({ route }) => {
           <Text style={{ fontSize: 16, fontWeight: '400', color: 'rgba(0, 0, 0, 0.76)' }}>
             {adData.beskrivelse}
           </Text>
-          {/* Legg til andre elementer du vil vise fra adData */}
+          <TouchableOpacity style={buttons.btn1} onPress={() => handleStatusUpdate('in progress')}>
+            <Text style={[fonts.btnBody, { color: 'blue' }]}>
+              Sett til "In Progress"
+            </Text>
+          </TouchableOpacity>
+
         </View>
       </View>
     );

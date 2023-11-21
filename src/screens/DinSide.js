@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Image, FlatList } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Image, FlatList, ScrollView } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
@@ -10,6 +10,7 @@ import WorkCard from '../components/WorkCard';
 import AdCard from '../components/AdCard';
 import { categories } from '../components/Categories';
 import ProfileModal from '../components/ProfileModal';
+import SearchBar from '../components/SearchBar';
 
 import buttons from '../../styles/buttons';
 import Colors from '../../styles/Colors';
@@ -73,15 +74,14 @@ export default function DinSide() {
     // Hent data umiddelbart når komponenten lastes
     fetchData();
   
-    // Sett opp periodisk henting av data hvert minutt
-    const intervalId = setInterval(fetchData, 60000);
+    const intervalId = setInterval(fetchData, 20000);
   
     // Rydd opp i intervallet når komponenten blir avmontert
     return () => clearInterval(intervalId);
   }, []);
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <SafeAreaView/>
 
         {/* Header */}
@@ -114,6 +114,11 @@ export default function DinSide() {
         <View style={containerStyles.defaultContainer}>
 
           <Text style={fonts.subHeader}>Hva trenger du hjelp med?</Text>
+
+          {/* Searchbar */}
+          <View style={{ marginTop: 12 }}>
+            <SearchBar placeholder={'Søk etter kategorier'} />
+          </View>
 
           {/* cards */}
           <View style={styles.cardGrid}>
@@ -158,7 +163,7 @@ export default function DinSide() {
 
         </View>
 
-    </View>
+    </ScrollView>
   );
 }
 
@@ -172,18 +177,18 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginTop: 20,
-    rowGap: 16,
+    rowGap: 12,
   },
   card: {
-    paddingVertical: 24,
-    paddingHorizontal: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 6,
     borderRadius: 5,
     width: 108,
     alignItems: 'center',
   },
   icon: {
-    width: 40,
-    height: 40,
+    width: 32,
+    height: 32,
     marginBottom: 12,
   },
   text: {

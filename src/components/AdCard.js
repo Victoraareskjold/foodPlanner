@@ -4,6 +4,8 @@ import React from 'react'
 import { categories } from './Categories';
 import Colors from '../../styles/Colors'
 
+import StatusButton from './StatusButton';
+
 const AdCard = (props) => {
   
   const { adData, navigation } = props;
@@ -14,20 +16,26 @@ const AdCard = (props) => {
       style={styles.cardContainer}
       onPress={() => navigation.navigate('AdView', { adData: adData })}
     >
-      <Image 
-        source={require('../../assets/vedBilde.png')}
-        style={styles.image}
-      />
       <View style={styles.textContainer}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 0}}>
-        <Text style={{ fontSize: 18, fontWeight: '500' }}>{adData.overskrift}</Text>
-        {category && <Image source={category.icon} style={[styles.icon, { marginLeft: 8 }]} />}
+
+        <Image 
+          source={require('../../assets/vedBilde.png')}
+          style={styles.image}
+        />
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 0}}>
+          <Text style={{ fontSize: 18, fontWeight: '500' }}>{adData.overskrift}</Text>
+          {category && <Image source={category.icon} style={[styles.icon, { marginLeft: 8 }]} />}
+        </View>
+        <Text 
+          style={{ fontSize: 16, fontWeight: '400', color: 'rgba(0, 0, 0, 0.76)' }}
+          numberOfLines={2}
+        >{adData.beskrivelse}</Text>
+
+        <StatusButton status={adData.status}/>
+
       </View>
-      <Text 
-        style={{ fontSize: 16, fontWeight: '400', color: 'rgba(0, 0, 0, 0.76)' }}
-        numberOfLines={2}
-      >{adData.beskrivelse}</Text>
-      </View>
+
     </TouchableOpacity>
   );
 };
@@ -37,19 +45,22 @@ export default AdCard;
 const styles = StyleSheet.create({
   image: {
     width: '100%',
-    height: 124,
-    borderTopLeftRadius: 5,
-    borderTopRightRadius: 5,
+    height: 140,
+    borderRadius: 5,
+    marginBottom: 16,
   },
   icon: {
     height: 24,
     width: 24,
   },
   cardContainer: {
-    borderRadius: 5,
-    width: 310,
-    backgroundColor: Colors.grey,
+    height: 'auto',
+    borderRadius: 10,
+    width: 300,
+    backgroundColor: Colors.white,
     marginRight: 20,
+    borderWidth: 1,
+    borderColor: Colors.lightGrey,
   },
   textContainer: {
     padding: 16,

@@ -73,9 +73,7 @@ export default function Ads() {
 
         <View style={containerStyles.defaultContainer}>
 
-            <SearchBar 
-                placeholder={'Søk etter annonser'}
-            />
+            <SearchBar placeholder={'Søk etter annonser'} />
             <CategoryButtons />
 
         </View>

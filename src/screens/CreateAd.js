@@ -22,6 +22,8 @@ export default function CreateAd({ route }) {
   const [overskrift, setOverskrift] = useState('');
   const [beskrivelse, setBeskrivelse] = useState('');
 
+  const [status, setStatus] = useState('not started'); // Default status is 'not started'
+
   const leggTilAnnonse = async () => {
     try {
       const db = getFirestore(firestore);
@@ -36,12 +38,10 @@ export default function CreateAd({ route }) {
         overskrift,
         beskrivelse,
         kategori: category,
-        uid: userUID, // Legg til brukerens UID i annonseobjektet
+        uid: userUID,
+        status,
       });
 
-      // Annonse er lastet opp, du kan legge til navigasjon eller annen logikk her
-
-      // Eksempel: Naviger tilbake til hjemmesiden
       navigation.goBack();
     } catch (error) {
       console.error('Feil ved opplasting av annonse:', error);
