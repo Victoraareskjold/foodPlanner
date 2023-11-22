@@ -126,7 +126,9 @@ export default function Ads() {
                 ListEmptyComponent={<Text style={{ alignSelf: 'center', marginTop: 20 }}>Ingen annonser</Text>}
                 data={adData}
                 keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => <AdCardList adData={item} />}
+                renderItem={({ item }) => (
+                  <AdCardList adData={item} navigation={navigation} />
+                )}
             />
         </View>
 

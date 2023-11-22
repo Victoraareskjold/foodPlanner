@@ -79,28 +79,18 @@ const AdView = ({ route }) => {
         />
         <View style={styles.textContainer}>
 
-          <Text style={{ fontSize: 24, fontWeight: '500', marginBottom: 6, }}>{adData.overskrift}</Text>
+            <Text style={{ fontSize: 24, fontWeight: '500', marginBottom: 6, }}>{adData.overskrift}</Text>
 
-          <View>
-            {category && (
-                <View style={styles.categoryContainer}>
-                <Text style={styles.categoryText}>{category.text}</Text>
-                <Image source={category.icon} style={styles.icon} />
-                  </View>
-              )}
-          </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                {category && (
+                    <View style={styles.categoryContainer}>
+                    <Text style={styles.categoryText}>{category.text}</Text>
+                    <Image source={category.icon} style={styles.icon} />
+                    </View>
+                )}
 
-          <View style={styles.userContainer}>
-
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Image 
-                style={{ width: 40, height: 40, marginRight: 12 }}
-                source={require('../../assets/user-1.png')}
-              />
-              <Text style={{ fontSize: 16 }}>{adData.user ? `${adData.user.firstName} ${adData.user.lastName}` : 'Ukjent bruker'}</Text>
+                <StatusButton status={adData.status} />
             </View>
-
-          </View>
 
           <Text>Beskrivelse</Text>
           <Text style={{ fontSize: 16, marginBottom: 12, fontWeight: '400', color: 'rgba(0, 0, 0, 0.76)' }}>
@@ -111,6 +101,18 @@ const AdView = ({ route }) => {
           <Text style={{ fontSize: 16, marginBottom: 12, fontWeight: '400', color: 'rgba(0, 0, 0, 0.76)' }}>
             {adData.sted}
           </Text>
+
+          <TouchableOpacity style={buttons.btn1} onPress={() => handleStatusUpdate('in progress')}>
+            <Text style={[fonts.btnBody, { color: 'blue' }]}>
+              Sett til "In Progress"
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[buttons.btn1, { backgroundColor: 'red' }]} onPress={handleDeleteAd}>
+            <Text style={[fonts.btnBody, { color: 'white' }]}>
+              Slett annonse
+            </Text>
+          </TouchableOpacity>
 
         </View>
       </View>
@@ -123,7 +125,7 @@ const AdView = ({ route }) => {
     categoryContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 20,
+        marginTop: 16,
     },
     icon: {
         height: 24,
@@ -146,12 +148,5 @@ const AdView = ({ route }) => {
     textContainer: {
       marginTop: 16,
       padding: 12,
-    },
-    userContainer: {
-      backgroundColor: colors.lightGrey,
-      paddingVertical: 12,
-      paddingHorizontal: 12,
-      marginBottom: 12,
-      borderRadius: 5,
     },
   });

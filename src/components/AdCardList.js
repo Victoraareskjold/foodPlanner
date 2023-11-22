@@ -4,12 +4,17 @@ import React from 'react'
 import { categories } from './Categories';
 import colors from '../../styles/colors'
 
-const AdCardList = ({ adData }) => {
+const AdCardList = (props) => {
+
+  const { adData, navigation } = props;
 
   const category = categories.find(category => category.text === adData.kategori);
 
   return (
-    <TouchableOpacity style={styles.cardContainer}>
+    <TouchableOpacity 
+      style={styles.cardContainer}
+      onPress={() => navigation.navigate('AdView', { adData: adData })}
+    >
       <Image 
         source={require('../../assets/vedBilde.png')}
         style={styles.image}
@@ -19,10 +24,13 @@ const AdCardList = ({ adData }) => {
         <Text style={{ fontSize: 18, fontWeight: '500' }}>{adData.overskrift}</Text>
         {category && <Image source={category.icon} style={[styles.icon, { marginLeft: 8 }]} />}
       </View>
-      <Text 
+      {/* <Text 
         style={{ fontSize: 16, fontWeight: '400', color: 'rgba(0, 0, 0, 0.76)' }}
         numberOfLines={2}
-      >{adData.beskrivelse}</Text>
+      >{adData.beskrivelse}</Text> */}
+      <Text 
+        style={{ fontSize: 16, fontWeight: '400', color: 'rgba(0, 0, 0, 0.76)' }}
+      >{adData.sted}</Text>
       </View>
     </TouchableOpacity>
   );

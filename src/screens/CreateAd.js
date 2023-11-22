@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useState, useEffect, useRef } from 'react';
 
 import { auth, db } from "../../firebase";
-import { getFirestore, doc, setDoc, collection, addDoc } from "firebase/firestore";
+import { getFirestore, doc, setDoc, collection, addDoc, getDoc, updateDoc } from "firebase/firestore";
 
 import { firestore } from "../../firebase";  // Importer firestore fra din firebase-config
 
@@ -22,7 +22,6 @@ export default function CreateAd({ route }) {
 
   const [overskrift, setOverskrift] = useState('');
   const [beskrivelse, setBeskrivelse] = useState('');
-  const [telefonnummer, setTelefonnummer] = useState('');
   const [sted, setSted] = useState('');
 
   const [status, setStatus] = useState('Ikke startet'); // Default status 
@@ -32,7 +31,6 @@ export default function CreateAd({ route }) {
   const isFormValid = () => {
     return overskrift.trim() !== '' &&
       beskrivelse.trim() !== '' &&
-      telefonnummer.trim() !== '' &&
       sted.trim() !== '';
   };
 
@@ -54,26 +52,33 @@ export default function CreateAd({ route }) {
       }
   
       // Legg til annonse i samlingen med brukerens UID
-      await addDoc(annonseCollectionRef, {
+      const annonseRef = await addDoc(annonseCollectionRef, {
         overskrift,
         beskrivelse,
-        telefonnummer,
         sted,
         kategori: category,
         uid: userUID,
         status,
       });
   
+      // Hent brukerens data fra Firestore
+      const userDocRef = doc(db, 'users', userUID);
+      const userDocSnapshot = await getDoc(userDocRef);
+      const userData = userDocSnapshot.data();
+  
+      // Oppdater annonse med brukerinformasjon
+      await updateDoc(annonseRef, { user: userData });
+  
       // Når annonse er lagt til, gå tilbake til forrige skjerm
       navigation.goBack();
     } catch (error) {
       // Hvis det oppstår en feil, logg feilen til konsollen
       console.error('Feil ved opplasting av annonse:', error);
-      
+  
       // Sett feilmeldingen for å vise den til brukeren
       setFormErrorMessage('Det oppstod en feil ved opprettelse av annonse');
     }
-  };  
+  };    
 
   return (
       <View style={{ backgroundColor: '#FFF', flex: 1 }}>
@@ -108,15 +113,6 @@ export default function CreateAd({ route }) {
               value={beskrivelse}
               onChangeText={(text) => setBeskrivelse(text)}
               multiline={true}
-            />
-
-            <Text>Telefonnummer</Text>
-            <TextInput
-              style={placeholderStyles.simple}
-              placeholder="12345678"
-              autoComplete='tel'
-              value={telefonnummer}
-              onChangeText={(text) => setTelefonnummer(text)}
             />
 
             <Text>Sted</Text>

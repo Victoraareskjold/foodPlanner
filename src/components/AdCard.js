@@ -14,7 +14,7 @@ const AdCard = (props) => {
   return (
     <TouchableOpacity 
       style={styles.cardContainer}
-      onPress={() => navigation.navigate('AdView', { adData: adData })}
+      onPress={() => navigation.navigate('YourAdView', { adData: adData })}
     >
       <View style={styles.textContainer}>
 

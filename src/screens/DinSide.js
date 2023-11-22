@@ -22,7 +22,7 @@ export default function DinSide() {
 
   const navigation = useNavigation();
 
-  const firstSixCategories = categories.slice(0, 6);
+  const firstSixCategories = categories.slice();
 
   const [isProfileModalVisible, setProfileModalVisible] = useState(false);
   const openProfileModal = () => {
@@ -115,7 +115,11 @@ export default function DinSide() {
           </View>
 
           {/* cards */}
-          <View style={styles.cardGrid}>
+          <ScrollView 
+            style={styles.cardGrid}
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+          >
             {firstSixCategories.map((category) => (
               <WorkCard
                 key={category.id}
@@ -123,7 +127,7 @@ export default function DinSide() {
                 icon={category.icon}
                 text={category.text}
                 onPress={() => {
-                  if (category.id === 6) {
+                  if (category.id === 9) {
                     // Behandling for det siste kortet
                     // For eksempel, navigasjon til en annen skjerm
                     navigation.navigate('AllCategories');
@@ -134,7 +138,7 @@ export default function DinSide() {
                 }}
               />
             ))}
-          </View>
+          </ScrollView>
 
         </View>
 
@@ -153,7 +157,7 @@ export default function DinSide() {
               <AdCard adData={item} navigation={navigation} />
             )}
           />
-        </View>
+          </View>
 
         </View>
 
@@ -168,22 +172,19 @@ const styles = StyleSheet.create({
   },
   cardGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
     marginTop: 20,
-    rowGap: 12,
   },
   card: {
-    paddingVertical: 12,
-    paddingHorizontal: 6,
+    paddingVertical: 8,
     borderRadius: 5,
-    width: 108,
+    width: 96,
     alignItems: 'center',
+    marginRight: 12,
   },
   icon: {
     width: 32,
     height: 32,
-    marginBottom: 12,
+    marginBottom: 4,
   },
   text: {
     color: '#272727',
