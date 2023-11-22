@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Image, FlatList, Alert } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Image, FlatList, Alert, Touchable } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
@@ -90,7 +90,10 @@ const AdView = ({ route }) => {
               )}
           </View>
 
-          <View style={styles.userContainer}>
+          <TouchableOpacity 
+            style={styles.userContainer}
+            onPress={() => navigation.navigate('AdChat', { adId: adData.id })}
+          >
 
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Image 
@@ -100,7 +103,7 @@ const AdView = ({ route }) => {
               <Text style={{ fontSize: 16 }}>{adData.user ? `${adData.user.firstName} ${adData.user.lastName}` : 'Ukjent bruker'}</Text>
             </View>
 
-          </View>
+          </TouchableOpacity>
 
           <Text>Beskrivelse</Text>
           <Text style={{ fontSize: 16, marginBottom: 12, fontWeight: '400', color: 'rgba(0, 0, 0, 0.76)' }}>

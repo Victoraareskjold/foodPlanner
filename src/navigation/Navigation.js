@@ -19,6 +19,7 @@ import SetupName from '../screens/onboarding/SetupName';
 import SignUp from '../screens/onboarding/SignUp';
 import AdView from '../screens/AdView';
 import YourAdView from '../screens/YourAdView';
+import AdChat from '../screens/AdChat';
 
 /* Tab bottom */
 const Tab = createBottomTabNavigator();
@@ -83,6 +84,7 @@ function DinSideStackGroup() {
       <DinSideStack.Screen options={{ headerShown: true, headerTitle: 'Alle kategorier' }} name="AllCategories" component={AllCategories} />
       <DinSideStack.Screen options={{ headerShown: true, headerTitle: ' ' }} name="AdView" component={AdView} />
       <DinSideStack.Screen options={{ headerShown: true, headerTitle: ' ' }} name="YourAdView" component={YourAdView} />
+      <DinSideStack.Screen options={{ headerShown: true, headerTitle: ' ' }} name="AdChat" component={AdChat} />
 
     </DinSideStack.Navigator>
   );
