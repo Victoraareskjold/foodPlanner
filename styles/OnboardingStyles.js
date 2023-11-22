@@ -1,4 +1,4 @@
-import Colors from './Colors';
+import colors from './colors';
 import { Dimensions } from 'react-native';
 
 const screenWidth = Dimensions.get('window').width;
@@ -14,7 +14,7 @@ export default {
         alignItems: 'center',
     },
     mainContainer: {
-        backgroundColor: Colors.white,
+        backgroundColor: colors.white,
         justifyContent: 'space-between',
     },
     sectionContainer: {
@@ -36,21 +36,21 @@ export default {
         fontWeight: 'bold',
         letterSpacing: 1,
         textAlign: 'center',
-        color: Colors.default,
+        color: colors.default,
         width: screenWidth - 48
     },
     header: {
         fontSize: 32,
         fontWeight: 'bold',
         letterSpacing: 1,
-        color: Colors.default,
+        color: colors.default,
     },
     body: {
         fontSize: 16,
         fontWeight: '400',
         letterSpacing: 0.5,
         textAlign: 'center',
-        color: Colors.default,
+        color: colors.default,
         opacity: 0.5,
         width: screenWidth - 48,
     },
@@ -72,7 +72,7 @@ export default {
     },
 
     primaryBtn: {
-        backgroundColor: Colors.primary,
+        backgroundColor: colors.primary,
         borderRadius: 50,
         paddingVertical: 18,
         width: "80%",
@@ -91,12 +91,12 @@ export default {
     },
 
     linkText: {
-        color: Colors.white,
+        color: colors.white,
         fontSize: 14,
         fontWeight: 700,
     },
     linkText2: {
-        color: Colors.default,
+        color: colors.default,
         fontSize: 14,
         fontWeight: 700,
     },

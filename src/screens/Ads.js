@@ -13,7 +13,7 @@ import { categories } from '../components/Categories';
 import ProfileModal from '../components/ProfileModal';
 
 import buttons from '../../styles/buttons';
-import Colors from '../../styles/Colors';
+import colors from '../../styles/colors';
 import fonts from '../../styles/fonts';
 import images from '../../styles/images';
 import containerStyles from '../../styles/containerStyles';

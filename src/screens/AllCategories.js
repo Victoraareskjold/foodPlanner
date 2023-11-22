@@ -9,7 +9,7 @@ import placeholderStyles from '../../styles/placeholderStyles';
 import buttons from '../../styles/buttons';
 import fonts from '../../styles/fonts';
 import { categories } from '../components/Categories';
-import Colors from '../../styles/Colors';
+import colors from '../../styles/colors';
 
 export default function CreateAd({ route }) {
 
@@ -43,7 +43,7 @@ export default function CreateAd({ route }) {
                 {filteredCategories.map((category) => (
                   <WorkCard
                     key={category.id}
-                    color={{backgroundColor: Colors.darkGrey}}
+                    color={{backgroundColor: colors.darkGrey}}
                     /* icon={category.icon} */
                     text={category.text}
                 />
@@ -59,7 +59,7 @@ export default function CreateAd({ route }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.lightGrey,
+    backgroundColor: colors.lightGrey,
     flexDirection: 'row',
     paddingVertical: 20,
     paddingHorizontal: 12,

@@ -13,7 +13,7 @@ import containerStyles from '../../styles/containerStyles';
 import placeholderStyles from '../../styles/placeholderStyles';
 import buttons from '../../styles/buttons';
 import fonts from '../../styles/fonts';
-import Colors from '../../styles/Colors';
+import colors from '../../styles/colors';
 
 export default function CreateAd({ route }) {
 
@@ -96,7 +96,7 @@ export default function CreateAd({ route }) {
               onChangeText={(text) => setOverskrift(text)}
             />
 
-            <View style={{ marginBottom: 12, backgroundColor: Colors.lightPrimary, padding: 6, borderRadius: 5 }}>
+            <View style={{ marginBottom: 12, backgroundColor: colors.lightPrimary, padding: 6, borderRadius: 5 }}>
               <Text>Kategori: {category}</Text>
             </View>
 

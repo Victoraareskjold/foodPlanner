@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, Image, ScrollView } from 'react-native';
 import { categories } from './Categories';
 import { useState, useEffect, useRef } from 'react';
-import Colors from '../../styles/Colors';
+import colors from '../../styles/colors';
 
 const CategoryButtons = ({ onSelectCategory  }) => {
 
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
       marginTop: 10,
     },
     categoryButton: {
-      backgroundColor: Colors.primaryLight,
+      backgroundColor: colors.primaryLight,
       marginRight: 8,
       borderRadius: 5,
       paddingVertical: 8,
@@ -59,8 +59,8 @@ const styles = StyleSheet.create({
     },
     activeCategory: {
       // Customize the styles for the active category
-      backgroundColor: Colors.primary, // Use your primary color or any other color you prefer
-      color: Colors.white,
+      backgroundColor: colors.primary, // Use your primary color or any other color you prefer
+      color: colors.white,
     },
   });
 

@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, FlatList, Image, TouchableOpacity } from 'react
 import React from 'react'
 
 import { categories } from './Categories';
-import Colors from '../../styles/Colors'
+import colors from '../../styles/colors'
 
 const AdCardList = ({ adData }) => {
 
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     borderRadius: 5,
     width: '100%',
-    backgroundColor: Colors.grey,
+    backgroundColor: colors.grey,
     marginBottom: 20,
   },
   textContainer: {

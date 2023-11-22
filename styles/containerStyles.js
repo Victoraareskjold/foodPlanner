@@ -1,4 +1,4 @@
-import Colors from "./Colors";
+import colors from "./colors";
 
 export default {
     defaultContainer: {
@@ -6,7 +6,7 @@ export default {
         marginTop: 32,
     },
     backgroundContainer: {
-        backgroundColor: Colors.white,
+        backgroundColor: colors.white,
         flex: 1,
     },
     headerContainer: {

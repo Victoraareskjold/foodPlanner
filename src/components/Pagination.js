@@ -2,13 +2,13 @@ import { StyleSheet, Animated, View } from 'react-native'
 import React from 'react'
 import OnboardingStyles from '../../styles/OnboardingStyles'
 
-import Colors from '../../styles/Colors'
+import colors from '../../styles/colors'
 
 const Pagination = ({ data, activeIndex }) => {
     return (
         <View style={OnboardingStyles.dotContainer}>
             {data.map((_, idx) => {
-                const color = idx === activeIndex ? Colors.primary : Colors.lightGrey;
+                const color = idx === activeIndex ? colors.primary : colors.lightGrey;
                 return (
                     <View 
                         key={idx.toString()} 

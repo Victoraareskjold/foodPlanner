@@ -12,7 +12,7 @@ import {
 import { auth } from '../../../firebase';
 
 import OnboardingStyles from '../../../styles/OnboardingStyles'
-import Colors from '../../../styles/Colors';
+import colors from '../../../styles/colors';
 import containerStyles from "../../../styles/containerStyles";
 
 export default function SetupName({ navigation }) {
@@ -52,7 +52,7 @@ export default function SetupName({ navigation }) {
             behavior={Platform.OS === 'ios' ? 'padding' : '0'}
             style={[containerStyles.backgroundContainer, { paddingHorizontal: 24 }]}
         >
-            <SafeAreaView style={{backgroundColor: Colors.white, flex: 1}}>
+            <SafeAreaView style={{backgroundColor: colors.white, flex: 1}}>
 
             {/* Header & subheader */}
                 <Ionicons 

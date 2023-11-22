@@ -10,14 +10,14 @@ import { auth, getAuth } from '../../../firebase';
 import OnboardingAssets from './OnboardingAssets'
 import Slider from '../../components/Slider'
 import OnboardingStyles from '../../../styles/OnboardingStyles'
-import Colors from '../../../styles/Colors'
+import colors from '../../../styles/colors'
 
 export default function Onboarding () {
 
     const navigation = useNavigation();
 
     return (
-        <SafeAreaView style={{flex:1, backgroundColor: Colors.white,}}>
+        <SafeAreaView style={{flex:1, backgroundColor: colors.white,}}>
             
             <View style={OnboardingStyles.centerContainer}>
                 <View style={OnboardingStyles.headerContainer}>

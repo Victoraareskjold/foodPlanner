@@ -1,7 +1,7 @@
 import { StyleSheet, View, Image, TextInput } from "react-native";
 import { useState } from "react";
 import React from "react";
-import Colors from "../../styles/Colors";
+import colors from "../../styles/colors";
 
 const SearchBar = ({  placeholder }) => {
     const [ input, setInput ] = useState("");
@@ -13,7 +13,7 @@ const SearchBar = ({  placeholder }) => {
                 style={{ width: 18, height: 18, marginRight: 4 }}
             /> */}
             <TextInput 
-                placeholderTextColor={Colors.defaultLight}
+                placeholderTextColor={colors.defaultLight}
                 value={input} onChangeText={(text) => setInput(text)} 
                 placeholder={placeholder}
                 style={{width: '100%'}}
@@ -36,6 +36,6 @@ const styles = StyleSheet.create ({
         paddingHorizontal: 12,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: Colors.lightGrey,
+        borderColor: colors.lightGrey,
     },
 });

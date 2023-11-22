@@ -13,7 +13,7 @@ import ProfileModal from '../components/ProfileModal';
 import StatusButton from '../components/StatusButton';
 
 import buttons from '../../styles/buttons';
-import Colors from '../../styles/Colors';
+import colors from '../../styles/colors';
 import fonts from '../../styles/fonts';
 import images from '../../styles/images';
 import containerStyles from '../../styles/containerStyles';

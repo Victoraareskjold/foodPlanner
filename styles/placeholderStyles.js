@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import colors from './Colors'
+import colors from './colors'
 
 export default StyleSheet.create({
     simple: {

@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, FlatList, Image, TouchableOpacity } from 'react
 import React from 'react'
 
 import { categories } from './Categories';
-import Colors from '../../styles/Colors'
+import colors from '../../styles/colors'
 
 import StatusButton from './StatusButton';
 
@@ -56,10 +56,10 @@ const styles = StyleSheet.create({
   cardContainer: {
     borderRadius: 10,
     width: 300,
-    backgroundColor: Colors.white,
+    backgroundColor: colors.white,
     marginRight: 20,
     borderWidth: 1,
-    borderColor: Colors.lightGrey,
+    borderColor: colors.lightGrey,
   },
   textContainer: {
     padding: 16,
