@@ -1,66 +1,82 @@
 import React, { useState, useEffect } from 'react';
 import { View, FlatList, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, onSnapshot, collectionGroup, orderBy, getDocs } from 'firebase/firestore';
 import { db, auth } from '../../firebase';
 
 const AllMessages = () => {
   const navigation = useNavigation();
-  const [messages, setMessages] = useState([]);
+  const [chats, setChats] = useState([]);
 
   useEffect(() => {
-    const fetchMessages = async () => {
+    const fetchChats = async () => {
+      try {
         const userUid = auth.currentUser.uid;
-      
-        // Replace 'userUid' with the actual user ID you want to retrieve messages for
-        const messagesQuery = query(
-          collection(db, 'chats'),
-          where('participants', 'array-contains', userUid)
-        );
-      
-        const messagesSnapshot = await getDocs(messagesQuery);
-        const messagesData = [];
-      
-        // Iterate through each chat and retrieve messages
-        for (const chatDoc of messagesSnapshot.docs) {
-          const chatId = chatDoc.id;
-          const chatMessagesQuery = query(
-            collection(db, 'chats', chatId, 'messages'),
-            where('senderId', '==', userUid)
-            // Uncomment the following line if you want to include messages where the user is the receiver
-            // where('receiverId', '==', userUid)
-          );
-      
-          const chatMessagesSnapshot = await getDocs(chatMessagesQuery);
-          const chatMessages = chatMessagesSnapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
-      
-          // Add chat messages to the overall messagesData array
-          messagesData.push(...chatMessages);
-        }
-      
-        // Sort messagesData by timestamp or any other relevant criteria
-        messagesData.sort((a, b) => a.timestamp - b.timestamp);
-      
-        setMessages(messagesData);
-      };      
+    
+        const chatsQuery = query(collectionGroup(db, 'messages'));
+        const chatsSnapshot = await getDocs(chatsQuery);
+        console.log('Chats Snapshot:', chatsSnapshot.docs);
+    
+        const chatsData = [];
+    
+        for (const chatDoc of chatsSnapshot.docs) {
+          const chatId = chatDoc.ref.parent.parent.id; // Get the chatId from the parent's parent (chats/chatId/messages/messageId)
+          const latestMessage = chatDoc.data();
+    
+          // Check if chatId already exists in chatsData
+          const existingChatIndex = chatsData.findIndex((chat) => chat.chatId === chatId);
+    
+          if (existingChatIndex === -1) {
+            // If chatId doesn't exist, add it to chatsData
+            chatsData.push({
+              chatId: chatId,
+              otherUserId: latestMessage.senderId !== userUid ? latestMessage.senderId : latestMessage.receiverId,
+              otherUserName: latestMessage.otherUserName,
+              adId: latestMessage.adId,
+              lastMessage: latestMessage.text,
+              timestamp: latestMessage.timestamp,
+            });
+          } else {
 
-    fetchMessages();
+            // If chatId exists, update the existing entry if the new message is more recent
+
+            if (latestMessage.timestamp.seconds > chatsData[existingChatIndex].timestamp.seconds ||
+                (latestMessage.timestamp.seconds === chatsData[existingChatIndex].timestamp.seconds &&
+                  latestMessage.timestamp.nanoseconds > chatsData[existingChatIndex].timestamp.nanoseconds)) {
+              chatsData[existingChatIndex].lastMessage = latestMessage.text;
+              chatsData[existingChatIndex].timestamp = latestMessage.timestamp;
+            }
+
+          }
+        }
+    
+        console.log('Chats Data:', chatsData);
+    
+        // Sort chatsData by timestamp or any other relevant criteria
+        chatsData.sort((a, b) => b.timestamp - a.timestamp);
+    
+        setChats(chatsData);
+      } catch (error) {
+        console.error('Error fetching chats:', error);
+      }
+    };    
+
+    fetchChats();
   }, []);
 
   return (
     <View style={styles.container}>
+      <Text>Dine meldinger</Text>
       <FlatList
-        data={messages}
-        keyExtractor={(item) => item.id}
+        data={chats}
+        keyExtractor={(item) => item.chatId + item.timestamp.seconds + item.timestamp.nanoseconds}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.messageItem}
-            onPress={() => navigation.navigate('AdChat', { adId: item.adId, otherUserId: item.receiverId, firstName: item.otherUserName })}
+            onPress={() => navigation.navigate('AdChat', { adId: item.adId, otherUserId: item.otherUserId, firstName: item.otherUserName })}
           >
             <Text>{item.otherUserName}</Text>
+            <Text>Last Message: {item.lastMessage}</Text>
             {/* Add other relevant information about the message */}
           </TouchableOpacity>
         )}
