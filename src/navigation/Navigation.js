@@ -21,6 +21,8 @@ import AdView from '../screens/AdView';
 import YourAdView from '../screens/YourAdView';
 import AdChat from '../screens/AdChat';
 
+import AllMessages from '../screens/AllMessages';
+
 /* Tab bottom */
 const Tab = createBottomTabNavigator();
 
@@ -38,8 +40,8 @@ function TabGroup() {
           else if (route.name === "Ads") {
             iconName = focused ? "receipt" : "receipt-outline"; } 
           
-          else if (route.name === "DinSide") {
-            iconName = focused ? "person-add" : "person-add-outline"; } 
+          else if (route.name === "AllMessages") {
+            iconName = focused ? "chatbox" : "chatbox-outline"; } 
           
           else if (route.name === "DinSide") {
             iconName = focused ? "settings-sharp" : "settings-outline"; }
@@ -51,6 +53,7 @@ function TabGroup() {
     >
       <Tab.Screen name="DinSideTab" component={DinSide} options={{ tabBarLabel: "Hjem" }} />
       <Tab.Screen name="Ads" component={Ads} options={{ tabBarLabel: "Annonser" }} />
+      <Tab.Screen name="AllMessages" component={AllMessages} options={{ tabBarLabel: "Meldinger" }} />
     </Tab.Navigator>
   );
 }

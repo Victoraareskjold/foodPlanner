@@ -12,7 +12,7 @@ const AdChat = ({ route }) => {
 
   const fetchMessages = async () => {
     const messagesQuery = query(
-      collection(db, 'ads', adId, 'messages'),
+      collection(db, 'chats', adId, 'messages'),
       orderBy('timestamp', 'asc')
     );
 
@@ -27,7 +27,7 @@ const AdChat = ({ route }) => {
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      query(collection(db, 'ads', adId, 'messages'), orderBy('timestamp', 'asc')),
+      query(collection(db, 'chats', adId, 'messages'), orderBy('timestamp', 'asc')),
       (snapshot) => {
         const messagesData = snapshot.docs.map((doc) => ({
           id: doc.id,
@@ -48,7 +48,7 @@ const AdChat = ({ route }) => {
     const currentUserId = auth.currentUser.uid;
 
     // Add logic to send a new message to Firestore
-    const messagesCollectionRef = collection(db, 'ads', adId, 'messages');
+    const messagesCollectionRef = collection(db, 'chats', adId, 'messages');
     await addDoc(messagesCollectionRef, {
       text: newMessage,
       senderId: currentUserId,

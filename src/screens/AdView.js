@@ -92,7 +92,7 @@ const AdView = ({ route }) => {
 
           <TouchableOpacity 
             style={styles.userContainer}
-            onPress={() => navigation.navigate('AdChat', { adId: adData.id })}
+            onPress={() => navigation.navigate('AdChat', { adId: adData.id, firstName: adData.user ? adData.user.firstName : '' })}
           >
 
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
