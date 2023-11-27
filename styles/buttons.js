@@ -9,7 +9,13 @@ export default StyleSheet.create({
     alignItems: "center",
     borderRadius: 5,
   },
-  filterBtn: {
-    backgroundColor: "red",
+  textBtn: {
+    paddingVertical: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    borderColor: "blue",
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 12,
   },
 });

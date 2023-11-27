@@ -1,16 +1,13 @@
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, Button, FlatList } from "react-native";
 import { auth, db } from "../../firebase";
 import {
   collection,
-  getDocs,
-  doc,
-  updateDoc,
-  deleteDoc,
   addDoc,
+  query,
+  orderBy,
+  onSnapshot,
 } from "firebase/firestore";
-import { firestore } from "../../firebase";
-
-import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, Button, FlatList } from "react-native";
 
 const ChatScreen = ({ route, navigation }) => {
   const [messages, setMessages] = useState([]);
@@ -23,32 +20,37 @@ const ChatScreen = ({ route, navigation }) => {
       console.error("Chat ID is undefined");
       return;
     }
-    // Hent meldinger for denne chatten fra Firebase
-    // Dette er en forenklet fremgangsmåte. Du bør bruke en lytter for å hente oppdateringer i sanntid.
-    const fetchMessages = async () => {
-      const messagesRef = collection(db, `chats/${chatId}/messages`);
-      const messagesSnapshot = await getDocs(messagesRef);
-      setMessages(
-        messagesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-      );
-    };
 
-    fetchMessages();
-  }, []);
+    const messagesRef = collection(db, `chats/${chatId}/messages`);
+    const q = query(messagesRef, orderBy("sentAt", "asc")); // Sorterer meldinger etter tidspunkt
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const messagesArray = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setMessages(messagesArray);
+    });
+
+    return () => unsubscribe(); // Rengjør abonnementet når komponenten avmonteres
+  }, [chatId]);
 
   const handleSendMessage = async () => {
-    // Sende en ny melding til Firebase
+    if (!newMessage.trim()) return; // Forhindrer å sende tomme meldinger
+
     const messageRef = collection(db, `chats/${chatId}/messages`);
     await addDoc(messageRef, {
-      text: newMessage,
+      text: newMessage.trim(),
       sentBy: auth.currentUser?.uid,
       sentAt: new Date(),
     });
+
     setNewMessage("");
   };
 
   return (
     <View>
+      {/* FlatList og TextInput som før */}
       <FlatList
         data={messages}
         renderItem={({ item }) => <Text>{item.text}</Text>}

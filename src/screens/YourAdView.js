@@ -143,7 +143,7 @@ const AdView = ({ route }) => {
         </TouchableOpacity>
       ) : (
         <TouchableOpacity
-          style={styles.button}
+          style={[styles.button, { backgroundColor: "blue" }]}
           onPress={() => setIsEditing(true)}
         >
           <Text style={styles.buttonText}>Rediger</Text>
@@ -151,10 +151,10 @@ const AdView = ({ route }) => {
       )}
 
       <TouchableOpacity
-        style={[styles.button, { backgroundColor: "red" }]}
+        style={[styles.button, { borderColor: "red", borderWidth: 1 }]}
         onPress={handleDeleteAd}
       >
-        <Text style={styles.buttonText}>Slett annonse</Text>
+        <Text style={[styles.buttonText, { color: "red" }]}>Slett annonse</Text>
       </TouchableOpacity>
     </View>
   );
@@ -185,7 +185,6 @@ const styles = StyleSheet.create({
     borderColor: "blue", // Endre fargen på input-feltet når det er i redigeringsmodus
   },
   button: {
-    backgroundColor: "blue",
     borderRadius: 8,
     padding: 12,
     alignItems: "center",

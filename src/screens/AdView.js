@@ -20,6 +20,8 @@ import {
   updateDoc,
   deleteDoc,
   addDoc,
+  query,
+  where,
 } from "firebase/firestore";
 import { firestore } from "../../firebase";
 
@@ -89,29 +91,53 @@ const AdView = ({ route }) => {
     }
   };
 
+  const doesChatExist = async (currentUserId, otherUserId, adId) => {
+    const chatsRef = collection(db, "chats");
+    const q = query(
+      chatsRef,
+      where("participants", "array-contains", currentUserId),
+      where("adId", "==", adId)
+    );
+
+    const querySnapshot = await getDocs(q);
+    let existingChatId = null;
+
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      if (data.participants.includes(otherUserId)) {
+        existingChatId = doc.id;
+      }
+    });
+
+    return existingChatId;
+  };
+
   const handleStartChat = async () => {
     try {
-      // Hent brukerens ID fra auth
       const currentUserUid = auth.currentUser?.uid;
-
-      // Sjekk at brukeren er logget inn
       if (!currentUserUid) {
         Alert.alert("Feil", "Du må være logget inn for å starte en chat.");
         return;
       }
 
-      // Opprett en ny chat i databasen
-      const chatRef = collection(db, "chats");
-      const newChat = {
-        adId: adData.id, // Annonse-ID
-        participants: [currentUserUid, adData.uid], // Avsender og mottaker
-        messages: [], // Tom liste for meldinger
-        createdAt: new Date(), // Opprettelsestidspunkt
-      };
-      const newChatDocRef = await addDoc(chatRef, newChat); // Definerer newChatDocRef her
+      const existingChatId = await doesChatExist(
+        currentUserUid,
+        adData.uid,
+        adData.id
+      );
 
-      // Naviger til chat-skjermen (du må implementere denne delen basert på din app-struktur)
-      navigation.navigate("ChatScreen", { chatId: newChatDocRef.id });
+      if (existingChatId) {
+        navigation.navigate("ChatScreen", { chatId: existingChatId });
+      } else {
+        const newChat = {
+          adId: adData.id,
+          participants: [currentUserUid, adData.uid],
+          messages: [],
+          createdAt: new Date(),
+        };
+        const newChatDocRef = await addDoc(collection(db, "chats"), newChat);
+        navigation.navigate("ChatScreen", { chatId: newChatDocRef.id });
+      }
     } catch (error) {
       console.error("Feil ved opprettelse av chat:", error);
     }
@@ -151,11 +177,8 @@ const AdView = ({ route }) => {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.startChatButton}
-          onPress={handleStartChat}
-        >
-          <Text>Start Chat</Text>
+        <TouchableOpacity style={buttons.textBtn} onPress={handleStartChat}>
+          <Text style={{ fontSize: 16, color: "blue" }}>Send melding</Text>
         </TouchableOpacity>
 
         <Text>Beskrivelse</Text>
