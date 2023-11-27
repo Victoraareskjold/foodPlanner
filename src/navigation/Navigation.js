@@ -24,6 +24,8 @@ import AdChat from "../screens/AdChat";
 import AllMessages from "../screens/AllMessages";
 
 import Profile from "../screens/Profile";
+import ChatScreen from "../screens/ChatScreen";
+import ChatChannels from "../screens/ChatChannels";
 
 /* Tab bottom */
 const Tab = createBottomTabNavigator();
@@ -40,7 +42,7 @@ function TabGroup() {
             iconName = focused ? "home" : "home-outline";
           } else if (route.name === "Ads") {
             iconName = focused ? "receipt" : "receipt-outline";
-          } else if (route.name === "AllMessages") {
+          } else if (route.name === "ChatChannels") {
             iconName = focused ? "chatbox" : "chatbox-outline";
           } else if (route.name === "Profile") {
             iconName = focused ? "person" : "person-outline";
@@ -62,8 +64,8 @@ function TabGroup() {
         options={{ tabBarLabel: "Annonser" }}
       />
       <Tab.Screen
-        name="AllMessages"
-        component={AllMessages}
+        name="ChatChannels"
+        component={ChatChannels}
         options={{ tabBarLabel: "Meldinger" }}
       />
       <Tab.Screen
@@ -145,6 +147,16 @@ function DinSideStackGroup() {
         options={{ headerShown: true, headerTitle: " " }}
         name="AdChat"
         component={AdChat}
+      />
+      <DinSideStack.Screen
+        options={{ headerShown: true, headerTitle: " " }}
+        name="ChatScreen"
+        component={ChatScreen}
+      />
+      <DinSideStack.Screen
+        options={{ headerShown: true, headerTitle: " " }}
+        name="ChatChannels"
+        component={ChatChannels}
       />
     </DinSideStack.Navigator>
   );
