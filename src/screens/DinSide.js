@@ -1,25 +1,39 @@
-import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Image, FlatList, ScrollView } from 'react-native';
-import { useState, useEffect, useRef } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  SafeAreaView,
+  TouchableOpacity,
+  Image,
+  FlatList,
+  ScrollView,
+} from "react-native";
+import { useState, useEffect, useRef } from "react";
+import { useNavigation } from "@react-navigation/native";
 
 import { auth, db } from "../../firebase";
-import { collection, getDocs, where, query, onSnapshot } from 'firebase/firestore'; // Correct import statements
-import { firestore } from '../../firebase';
+import {
+  collection,
+  getDocs,
+  where,
+  query,
+  onSnapshot,
+} from "firebase/firestore"; // Correct import statements
+import { firestore } from "../../firebase";
 
-import WorkCard from '../components/WorkCard';
-import AdCard from '../components/AdCard';
-import { categories } from '../components/Categories';
-import ProfileModal from '../components/ProfileModal';
-import SearchBar from '../components/SearchBar';
+import WorkCard from "../components/WorkCard";
+import AdCard from "../components/AdCard";
+import { categories } from "../components/Categories";
+import ProfileModal from "../components/ProfileModal";
+import SearchBar from "../components/SearchBar";
 
-import buttons from '../../styles/buttons';
-import colors from '../../styles/colors';
-import fonts from '../../styles/fonts';
-import images from '../../styles/images';
-import containerStyles from '../../styles/containerStyles';
+import buttons from "../../styles/buttons";
+import colors from "../../styles/colors";
+import fonts from "../../styles/fonts";
+import images from "../../styles/images";
+import containerStyles from "../../styles/containerStyles";
 
 export default function DinSide() {
-
   const navigation = useNavigation();
 
   const firstSixCategories = categories.slice();
@@ -33,14 +47,11 @@ export default function DinSide() {
   };
 
   const WorkCard = ({ color, icon, text, onPress }) => {
-
-    const textColor = text === 'Se alle' ? '#FFF' : '#272727'; // Endre farge basert på teksten
-  
     return (
       <TouchableOpacity onPress={onPress}>
         <View style={[styles.card, { backgroundColor: color }]}>
           <Image source={icon} style={styles.icon} />
-          <Text style={[styles.text, { color: textColor }]}>{text}</Text>
+          <Text style={styles.text}>{text}</Text>
         </View>
       </TouchableOpacity>
     );
@@ -49,24 +60,30 @@ export default function DinSide() {
   const [adData, setAdData] = useState([]);
 
   const fetchAdsFromDatabase = (userUid) => {
-    const adsCollectionRef = collection(db, 'annonser');
-    
+    const adsCollectionRef = collection(db, "annonser");
+
     // Set up a real-time listener for changes to the 'annonser' collection
-    const unsubscribe = onSnapshot(query(adsCollectionRef, where('uid', '==', userUid)), (snapshot) => {
-      const adsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      console.log('Fetched ads');
-      setAdData(adsData);
-    });
-  
+    const unsubscribe = onSnapshot(
+      query(adsCollectionRef, where("uid", "==", userUid)),
+      (snapshot) => {
+        const adsData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        console.log("Fetched ads");
+        setAdData(adsData);
+      }
+    );
+
     // Clean up the listener when the component is unmounted
     return unsubscribe;
   };
-  
+
   useEffect(() => {
     const user = auth.currentUser;
     if (user) {
       const unsubscribe = fetchAdsFromDatabase(user.uid);
-  
+
       return () => {
         // Clean up the listener when the component is unmounted
         unsubscribe();
@@ -76,78 +93,85 @@ export default function DinSide() {
 
   return (
     <ScrollView style={styles.container}>
-      <SafeAreaView/>
+      <SafeAreaView />
 
-        {/* Header */}
-        <View style={{paddingHorizontal: 20, marginTop: 32, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+      {/* Header */}
+      <View
+        style={{
+          paddingHorizontal: 20,
+          marginTop: 32,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Text style={fonts.header}>Din side</Text>
 
-          <Text style={fonts.header}>Din side</Text>
+        {/* Bell & user */}
+        <View style={{ flexDirection: "row" }}>
+          <TouchableOpacity>
+            <Image
+              source={require("../../assets/noti.png")}
+              style={images.icon48}
+            />
+          </TouchableOpacity>
 
-          {/* Bell & user */}
-          <View style={{flexDirection: 'row'}}>
-            <TouchableOpacity>
-              <Image 
-                source={require('../../assets/noti.png')}
-                style={images.icon48}
-              />
-            </TouchableOpacity>
+          <TouchableOpacity onPress={openProfileModal}>
+            <Image
+              source={require("../../assets/user-1.png")}
+              style={[images.icon48, { marginLeft: 8 }]}
+            />
+          </TouchableOpacity>
 
-            <TouchableOpacity onPress={openProfileModal}>
-              <Image 
-                source={require('../../assets/user-1.png')}
-                style={[images.icon48, {marginLeft: 8}]}
-              />
-            </TouchableOpacity>
+          {/* Profilmodal */}
+          <ProfileModal
+            isVisible={isProfileModalVisible}
+            onClose={closeProfileModal}
+          />
+        </View>
+      </View>
 
-            {/* Profilmodal */}
-            <ProfileModal isVisible={isProfileModalVisible} onClose={closeProfileModal} />
-          </View>
+      {/* Hva trenger du hjelp med? */}
+      <View style={containerStyles.defaultContainer}>
+        <Text style={fonts.subHeader}>Hva trenger du hjelp med?</Text>
+
+        {/* Searchbar */}
+        <View style={{ marginTop: 12 }}>
+          <SearchBar placeholder={"Søk etter kategorier"} />
         </View>
 
-        {/* Hva trenger du hjelp med? */}
-        <View style={containerStyles.defaultContainer}>
+        {/* cards */}
+        <ScrollView
+          style={styles.cardGrid}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        >
+          {firstSixCategories.map((category) => (
+            <WorkCard
+              key={category.id}
+              color={category.color}
+              icon={category.icon}
+              text={category.text}
+              onPress={() => {
+                if (category.id === 9) {
+                  // Behandling for det siste kortet
+                  // For eksempel, navigasjon til en annen skjerm
+                  navigation.navigate("AllCategories");
+                } else {
+                  // Behandling for de andre kortene
+                  navigation.navigate("CreateAd", { category: category.text });
+                }
+              }}
+            />
+          ))}
+        </ScrollView>
+      </View>
 
-          <Text style={fonts.subHeader}>Hva trenger du hjelp med?</Text>
+      {/* Pågående arbeid */}
+      <View style={containerStyles.defaultContainer}>
+        <Text style={fonts.subHeader}>Pågående arbeid</Text>
 
-          {/* Searchbar */}
-          <View style={{ marginTop: 12 }}>
-            <SearchBar placeholder={'Søk etter kategorier'} />
-          </View>
-
-          {/* cards */}
-          <ScrollView 
-            style={styles.cardGrid}
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
-          >
-            {firstSixCategories.map((category) => (
-              <WorkCard
-                key={category.id}
-                color={category.color}
-                icon={category.icon}
-                text={category.text}
-                onPress={() => {
-                  if (category.id === 9) {
-                    // Behandling for det siste kortet
-                    // For eksempel, navigasjon til en annen skjerm
-                    navigation.navigate('AllCategories');
-                  } else {
-                    // Behandling for de andre kortene
-                    navigation.navigate('CreateAd', { category: category.text });
-                  }
-                }}
-              />
-            ))}
-          </ScrollView>
-
-        </View>
-
-        {/* Pågående arbeid */}
-        <View style={containerStyles.defaultContainer}>
-
-          <Text style={fonts.subHeader}>Pågående arbeid</Text>
-
-          <View style={{ marginTop: 16 }}>
+        <View style={{ marginTop: 16 }}>
           <FlatList
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -157,10 +181,8 @@ export default function DinSide() {
               <AdCard adData={item} navigation={navigation} />
             )}
           />
-          </View>
-
         </View>
-
+      </View>
     </ScrollView>
   );
 }
@@ -168,17 +190,17 @@ export default function DinSide() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   cardGrid: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginTop: 20,
   },
   card: {
     paddingVertical: 8,
     borderRadius: 5,
     width: 96,
-    alignItems: 'center',
+    alignItems: "center",
     marginRight: 12,
   },
   icon: {
@@ -187,9 +209,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   text: {
-    color: '#272727',
+    color: "#272727",
     fontSize: 16,
-    fontWeight: '500',
-    alignSelf: 'center',
+    fontWeight: "500",
+    alignSelf: "center",
   },
 });

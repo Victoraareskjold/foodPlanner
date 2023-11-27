@@ -1,27 +1,29 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 /* Screens */
-import DinSide from '../screens/DinSide';
-import CreateAd from '../screens/CreateAd';
-import AllCategories from '../screens/AllCategories';
+import DinSide from "../screens/DinSide";
+import CreateAd from "../screens/CreateAd";
+import AllCategories from "../screens/AllCategories";
 
-import Ads from '../screens/Ads';
+import Ads from "../screens/Ads";
 
-import Onboarding from '../screens/onboarding/Onboarding';
+import Onboarding from "../screens/onboarding/Onboarding";
 
-import Login from '../screens/onboarding/Login';
-import SetupName from '../screens/onboarding/SetupName';
-import SignUp from '../screens/onboarding/SignUp';
-import AdView from '../screens/AdView';
-import YourAdView from '../screens/YourAdView';
-import AdChat from '../screens/AdChat';
+import Login from "../screens/onboarding/Login";
+import SetupName from "../screens/onboarding/SetupName";
+import SignUp from "../screens/onboarding/SignUp";
+import AdView from "../screens/AdView";
+import YourAdView from "../screens/YourAdView";
+import AdChat from "../screens/AdChat";
 
-import AllMessages from '../screens/AllMessages';
+import AllMessages from "../screens/AllMessages";
+
+import Profile from "../screens/Profile";
 
 /* Tab bottom */
 const Tab = createBottomTabNavigator();
@@ -35,25 +37,40 @@ function TabGroup() {
         tabBarIcon: ({ color, focused, size }) => {
           let iconName;
           if (route.name === "DinSideTab") {
-            iconName = focused ? "home" : "home-outline"; } 
-          
-          else if (route.name === "Ads") {
-            iconName = focused ? "receipt" : "receipt-outline"; } 
-          
-          else if (route.name === "AllMessages") {
-            iconName = focused ? "chatbox" : "chatbox-outline"; } 
-          
-          else if (route.name === "DinSide") {
-            iconName = focused ? "settings-sharp" : "settings-outline"; }
+            iconName = focused ? "home" : "home-outline";
+          } else if (route.name === "Ads") {
+            iconName = focused ? "receipt" : "receipt-outline";
+          } else if (route.name === "AllMessages") {
+            iconName = focused ? "chatbox" : "chatbox-outline";
+          } else if (route.name === "Profile") {
+            iconName = focused ? "person" : "person-outline";
+          }
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: "#2984FF",
       })}
     >
-      <Tab.Screen name="DinSideTab" component={DinSide} options={{ tabBarLabel: "Hjem" }} />
-      <Tab.Screen name="Ads" component={Ads} options={{ tabBarLabel: "Annonser" }} />
-      <Tab.Screen name="AllMessages" component={AllMessages} options={{ tabBarLabel: "Meldinger" }} />
+      <Tab.Screen
+        name="DinSideTab"
+        component={DinSide}
+        options={{ tabBarLabel: "Hjem" }}
+      />
+      <Tab.Screen
+        name="Ads"
+        component={Ads}
+        options={{ tabBarLabel: "Annonser" }}
+      />
+      <Tab.Screen
+        name="AllMessages"
+        component={AllMessages}
+        options={{ tabBarLabel: "Meldinger" }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={Profile}
+        options={{ tabBarLabel: "Din profil" }}
+      />
     </Tab.Navigator>
   );
 }
@@ -64,14 +81,32 @@ const LoginStack = createNativeStackNavigator();
 function LoginStackGroup() {
   return (
     <LoginStack.Navigator>
+      <LoginStack.Screen
+        options={{ headerShown: false }}
+        name="Onboarding"
+        component={Onboarding}
+      />
+      <LoginStack.Screen
+        options={{ headerShown: false }}
+        name="Login"
+        component={Login}
+      />
+      <LoginStack.Screen
+        options={{ headerShown: false }}
+        name="SetupName"
+        component={SetupName}
+      />
+      <LoginStack.Screen
+        options={{ headerShown: false }}
+        name="SignUp"
+        component={SignUp}
+      />
 
-      <LoginStack.Screen options={{ headerShown: false }} name="Onboarding" component={Onboarding} />
-      <LoginStack.Screen options={{ headerShown: false }} name="Login" component={Login} />
-      <LoginStack.Screen options={{ headerShown: false }} name="SetupName" component={SetupName} />
-      <LoginStack.Screen options={{ headerShown: false }} name="SignUp" component={SignUp} />
-
-      <LoginStack.Screen options={{ headerShown: false }} name="DinSideStack" component={DinSideStackGroup} />
-
+      <LoginStack.Screen
+        options={{ headerShown: false }}
+        name="DinSideStack"
+        component={DinSideStackGroup}
+      />
     </LoginStack.Navigator>
   );
 }
@@ -81,14 +116,36 @@ const DinSideStack = createNativeStackNavigator();
 function DinSideStackGroup() {
   return (
     <DinSideStack.Navigator>
-
-      <DinSideStack.Screen options={{ headerShown: false }} name="DinSide" component={TabGroup} />
-      <DinSideStack.Screen options={{ headerShown: true, headerTitle: 'Opprett annonse' }} name="CreateAd" component={CreateAd} />
-      <DinSideStack.Screen options={{ headerShown: true, headerTitle: 'Alle kategorier' }} name="AllCategories" component={AllCategories} />
-      <DinSideStack.Screen options={{ headerShown: true, headerTitle: ' ' }} name="AdView" component={AdView} />
-      <DinSideStack.Screen options={{ headerShown: true, headerTitle: ' ' }} name="YourAdView" component={YourAdView} />
-      <DinSideStack.Screen options={{ headerShown: true, headerTitle: ' ' }} name="AdChat" component={AdChat} />
-
+      <DinSideStack.Screen
+        options={{ headerShown: false }}
+        name="DinSide"
+        component={TabGroup}
+      />
+      <DinSideStack.Screen
+        options={{ headerShown: true, headerTitle: "Opprett annonse" }}
+        name="CreateAd"
+        component={CreateAd}
+      />
+      <DinSideStack.Screen
+        options={{ headerShown: true, headerTitle: "Alle kategorier" }}
+        name="AllCategories"
+        component={AllCategories}
+      />
+      <DinSideStack.Screen
+        options={{ headerShown: true, headerTitle: " " }}
+        name="AdView"
+        component={AdView}
+      />
+      <DinSideStack.Screen
+        options={{ headerShown: true, headerTitle: " " }}
+        name="YourAdView"
+        component={YourAdView}
+      />
+      <DinSideStack.Screen
+        options={{ headerShown: true, headerTitle: " " }}
+        name="AdChat"
+        component={AdChat}
+      />
     </DinSideStack.Navigator>
   );
 }
@@ -98,9 +155,11 @@ const AdsStack = createNativeStackNavigator();
 function AdsStackGroup() {
   return (
     <AdsStack.Navigator>
-
-      <AdsStack.Screen options={{ headerShown: false }} name="Ads" component={Ads} />
-
+      <AdsStack.Screen
+        options={{ headerShown: false }}
+        name="Ads"
+        component={Ads}
+      />
     </AdsStack.Navigator>
   );
 }
@@ -109,7 +168,7 @@ function AdsStackGroup() {
 export default function Navigation() {
   return (
     <NavigationContainer>
-        <LoginStackGroup />
+      <LoginStackGroup />
     </NavigationContainer>
   );
 }

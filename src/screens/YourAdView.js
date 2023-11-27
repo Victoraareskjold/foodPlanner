@@ -1,152 +1,214 @@
-import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Image, FlatList, Alert } from 'react-native';
-import { useState, useEffect, useRef } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+} from "react-native";
 
-import { auth, db } from "../../firebase";
-import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { firestore } from '../../firebase';
+import { useNavigation } from "@react-navigation/native";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  collection,
+  addDoc,
+  getDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { db, auth } from "../../firebase";
 
-import WorkCard from '../components/WorkCard';
-import AdCard from '../components/AdCard';
-import { categories } from '../components/Categories';
-import ProfileModal from '../components/ProfileModal';
-import StatusButton from '../components/StatusButton';
+import WorkCard from "../components/WorkCard";
+import AdCard from "../components/AdCard";
+import { categories } from "../components/Categories";
+import ProfileModal from "../components/ProfileModal";
+import StatusButton from "../components/StatusButton";
 
-import buttons from '../../styles/buttons';
-import colors from '../../styles/colors';
-import fonts from '../../styles/fonts';
-import images from '../../styles/images';
-import containerStyles from '../../styles/containerStyles';
+import containerStyles from "../../styles/containerStyles";
+import placeholderStyles from "../../styles/placeholderStyles";
+import buttons from "../../styles/buttons";
+import fonts from "../../styles/fonts";
+import colors from "../../styles/colors";
 
 const AdView = ({ route }) => {
+  const { adData } = route.params;
+  const [isEditing, setIsEditing] = useState(false);
+  const [newOverskrift, setNewOverskrift] = useState(adData.overskrift);
+  const [newBeskrivelse, setNewBeskrivelse] = useState(adData.beskrivelse);
+  const [newSted, setNewSted] = useState(adData.sted);
 
-    const navigation = useNavigation();
-    
-    const { adData } = route.params;
+  const category = categories.find(
+    (category) => category.text === adData.kategori
+  );
 
-    const category = categories.find((category) => category.text === adData.kategori);
+  const [status, setStatus] = useState(adData.status);
 
-    const [status, setStatus] = useState(adData.status);
+  const navigation = useNavigation();
 
-    const handleStatusUpdate = async (newStatus) => {
-      try {
-        // Oppdater statusen i komponentens tilstand
-        setStatus(newStatus);
-    
-        // Oppdater statusen i databasen
-        const adRef = doc(db, 'annonser', adData.id); // Anta at du har en unik id for hver annonse i adData
-        await updateDoc(adRef, { status: newStatus });
-    
-        // Gi tilbakemelding eller oppdater annen logikk etter behov
-        console.log(`Status updated to "${newStatus}"`);
-      } catch (error) {
-        console.error('Feil ved oppdatering av status:', error);
-      }
-    };    
+  const handleUpdateAd = async () => {
+    try {
+      // Oppdater annonseinformasjonen i Firestore
+      const adRef = doc(db, "annonser", adData.id);
+      await updateDoc(adRef, {
+        overskrift: newOverskrift,
+        beskrivelse: newBeskrivelse,
+        sted: newSted,
+        status: status,
+      });
 
-    const handleDeleteAd = async () => {
-      try {
-        // Vis bekreftelsesdialog før sletting
-        Alert.alert(
-          'Bekreft sletting',
-          'Er du sikker på at du vil slette denne annonsen?',
-          [
-            {
-              text: 'Avbryt',
-              style: 'cancel',
-            },
-            {
-              text: 'Slett',
-              style: 'destructive',
-              onPress: async () => {
-                const adRef = doc(db, 'annonser', adData.id);
-                await deleteDoc(adRef);
-                navigation.goBack();
-              },
-            },
-          ]
-        );
-      } catch (error) {
-        console.error('Feil ved sletting av annonse:', error);
-      }
-    };
-  
-    return (
-      <View style={styles.container}>
-        <Image 
-          source={require('../../assets/vedBilde.png')}
-          style={styles.image}
-        />
-        <View style={styles.textContainer}>
-
-            <Text style={{ fontSize: 24, fontWeight: '500', marginBottom: 6, }}>{adData.overskrift}</Text>
-
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                {category && (
-                    <View style={styles.categoryContainer}>
-                    <Text style={styles.categoryText}>{category.text}</Text>
-                    <Image source={category.icon} style={styles.icon} />
-                    </View>
-                )}
-
-                <StatusButton status={adData.status} />
-            </View>
-
-          <Text>Beskrivelse</Text>
-          <Text style={{ fontSize: 16, marginBottom: 12, fontWeight: '400', color: 'rgba(0, 0, 0, 0.76)' }}>
-            {adData.beskrivelse}
-          </Text>
-
-          <Text>Sted</Text>
-          <Text style={{ fontSize: 16, marginBottom: 12, fontWeight: '400', color: 'rgba(0, 0, 0, 0.76)' }}>
-            {adData.sted}
-          </Text>
-
-          <TouchableOpacity style={buttons.btn1} onPress={() => handleStatusUpdate('in progress')}>
-            <Text style={[fonts.btnBody, { color: 'blue' }]}>
-              Sett til "In Progress"
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[buttons.btn1, { backgroundColor: 'red' }]} onPress={handleDeleteAd}>
-            <Text style={[fonts.btnBody, { color: 'white' }]}>
-              Slett annonse
-            </Text>
-          </TouchableOpacity>
-
-        </View>
-      </View>
-    );
+      // Gå tilbake til visningsskjermen når oppdateringen er fullført
+      navigation.goBack();
+    } catch (error) {
+      console.error("Feil ved oppdatering av annonse:", error);
+    }
   };
-  
-  export default AdView;
-  
-  const styles = StyleSheet.create({
-    categoryContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 16,
-    },
-    icon: {
-        height: 24,
-        width: 24,
-        marginLeft: 6,
-    },
-    categoryText: {
-        fontSize: 16,
-        fontWeight: '500',
-    },
 
-    container: {
-      flex: 1,
-      backgroundColor: '#fff',
-    },
-    image: {
-      width: '100%',
-      height: 200,
-    },
-    textContainer: {
-      marginTop: 16,
-      padding: 12,
-    },
-  });
+  const handleDeleteAd = async () => {
+    try {
+      // Vis bekreftelsesdialog før sletting
+      Alert.alert(
+        "Bekreft sletting",
+        "Er du sikker på at du vil slette denne annonsen?",
+        [
+          {
+            text: "Avbryt",
+            style: "cancel",
+          },
+          {
+            text: "Slett",
+            style: "destructive",
+            onPress: async () => {
+              const adRef = doc(db, "annonser", adData.id);
+              await deleteDoc(adRef);
+              navigation.goBack();
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Feil ved sletting av annonse:", error);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.label}>Overskrift</Text>
+      {isEditing ? (
+        <TextInput
+          style={[styles.input, styles.inputBorder]}
+          value={newOverskrift}
+          onChangeText={(text) => setNewOverskrift(text)}
+        />
+      ) : (
+        <Text style={styles.text}>{newOverskrift}</Text>
+      )}
+
+      <View>
+        {category && (
+          <View style={styles.categoryContainer}>
+            <Text style={styles.categoryText}>{category.text}</Text>
+            <Image source={category.icon} style={styles.icon} />
+          </View>
+        )}
+      </View>
+
+      <Text style={styles.label}>Beskrivelse</Text>
+      {isEditing ? (
+        <TextInput
+          style={[styles.input, styles.inputBorder]}
+          value={newBeskrivelse}
+          onChangeText={(text) => setNewBeskrivelse(text)}
+          multiline={true}
+        />
+      ) : (
+        <Text style={styles.text}>{newBeskrivelse}</Text>
+      )}
+
+      <Text style={styles.label}>Sted</Text>
+      {isEditing ? (
+        <TextInput
+          style={[styles.input, styles.inputBorder]}
+          value={newSted}
+          onChangeText={(text) => setNewSted(text)}
+        />
+      ) : (
+        <Text style={styles.text}>{newSted}</Text>
+      )}
+
+      {isEditing ? (
+        <TouchableOpacity style={styles.button} onPress={handleUpdateAd}>
+          <Text style={styles.buttonText}>Lagre endringer</Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setIsEditing(true)}
+        >
+          <Text style={styles.buttonText}>Rediger</Text>
+        </TouchableOpacity>
+      )}
+
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: "red" }]}
+        onPress={handleDeleteAd}
+      >
+        <Text style={styles.buttonText}>Slett annonse</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 16,
+  },
+  label: {
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  text: {
+    fontSize: 16,
+    marginBottom: 16,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 16,
+  },
+  inputBorder: {
+    borderColor: "blue", // Endre fargen på input-feltet når det er i redigeringsmodus
+  },
+  button: {
+    backgroundColor: "blue",
+    borderRadius: 8,
+    padding: 12,
+    alignItems: "center",
+    marginTop: 12,
+  },
+  buttonText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+  categoryContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  icon: {
+    height: 24,
+    width: 24,
+    marginLeft: 6,
+  },
+  categoryText: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+});
+
+export default AdView;

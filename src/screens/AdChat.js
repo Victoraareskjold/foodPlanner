@@ -1,19 +1,33 @@
-import React, { useState, useEffect } from 'react';
-import { View, FlatList, TextInput, Button, StyleSheet, Text } from 'react-native';
-import Message from '../components/Message';
-import { collection, query, orderBy, getDocs, addDoc, onSnapshot } from 'firebase/firestore';
-import { db, auth } from '../../firebase';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  FlatList,
+  TextInput,
+  Button,
+  StyleSheet,
+  Text,
+} from "react-native";
+import Message from "../components/Message";
+import {
+  collection,
+  query,
+  orderBy,
+  getDocs,
+  addDoc,
+  onSnapshot,
+} from "firebase/firestore";
+import { db, auth } from "../../firebase";
 
 const AdChat = ({ route }) => {
   const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
 
   const { adId } = route.params;
 
   const fetchMessages = async () => {
     const messagesQuery = query(
-      collection(db, 'chats', adId, 'messages'),
-      orderBy('timestamp', 'asc')
+      collection(db, "chats", adId, "messages"),
+      orderBy("timestamp", "asc")
     );
 
     const messagesSnapshot = await getDocs(messagesQuery);
@@ -27,7 +41,10 @@ const AdChat = ({ route }) => {
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      query(collection(db, 'chats', adId, 'messages'), orderBy('timestamp', 'asc')),
+      query(
+        collection(db, "chats", adId, "messages"),
+        orderBy("timestamp", "asc")
+      ),
       (snapshot) => {
         const messagesData = snapshot.docs.map((doc) => ({
           id: doc.id,
@@ -48,7 +65,7 @@ const AdChat = ({ route }) => {
     const currentUserId = auth.currentUser.uid;
 
     // Add logic to send a new message to Firestore
-    const messagesCollectionRef = collection(db, 'chats', adId, 'messages');
+    const messagesCollectionRef = collection(db, "chats", adId, "messages");
     await addDoc(messagesCollectionRef, {
       text: newMessage,
       senderId: currentUserId,
@@ -56,14 +73,14 @@ const AdChat = ({ route }) => {
     });
 
     // Update state to refresh the messages
-    setNewMessage('');
+    setNewMessage("");
   };
 
   return (
     <View style={styles.container}>
       <FlatList
         data={messages}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => item.id + index.toString()}
         renderItem={({ item }) => (
           <Message
             message={item}
@@ -71,6 +88,7 @@ const AdChat = ({ route }) => {
           />
         )}
       />
+
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -87,18 +105,18 @@ const AdChat = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 16,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 16,
   },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 8,
     marginRight: 8,
     padding: 8,
