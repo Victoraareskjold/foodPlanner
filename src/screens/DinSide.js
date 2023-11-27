@@ -34,6 +34,12 @@ import images from "../../styles/images";
 import containerStyles from "../../styles/containerStyles";
 
 export default function DinSide() {
+  useEffect(() => {
+    if (!auth.currentUser) {
+      navigation.navigate("Login");
+    }
+  }, []);
+
   const navigation = useNavigation();
 
   const firstSixCategories = categories.slice();

@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../../firebase";
 
 import Ionicons from "react-native-vector-icons/Ionicons";
 
@@ -145,11 +148,6 @@ function DinSideStackGroup() {
       />
       <DinSideStack.Screen
         options={{ headerShown: true, headerTitle: " " }}
-        name="AdChat"
-        component={AdChat}
-      />
-      <DinSideStack.Screen
-        options={{ headerShown: true, headerTitle: " " }}
         name="ChatScreen"
         component={ChatScreen}
       />
@@ -178,9 +176,19 @@ function AdsStackGroup() {
 
 /* Main Navigation Container */
 export default function Navigation() {
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsUserLoggedIn(!!user);
+    });
+
+    return () => unsubscribe(); // Rengjøringsfunksjon for å avbryte lytteren
+  }, []);
+
   return (
     <NavigationContainer>
-      <LoginStackGroup />
+      {isUserLoggedIn ? <DinSideStackGroup /> : <LoginStackGroup />}
     </NavigationContainer>
   );
 }

@@ -1,9 +1,13 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword, initializeAuth, getReactNativePersistence } from "firebase/auth";
-import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  initializeAuth,
+  getReactNativePersistence,
+} from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { getFirestore } from "firebase/firestore";
-
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -12,7 +16,7 @@ const firebaseConfig = {
   projectId: "assistas-7e5e7",
   storageBucket: "assistas-7e5e7.appspot.com",
   messagingSenderId: "760338202898",
-  appId: "1:760338202898:web:b2a693280ef80127a4f3cb"
+  appId: "1:760338202898:web:b2a693280ef80127a4f3cb",
 };
 
 // Initialize Firebase
@@ -20,7 +24,9 @@ const app = initializeApp(firebaseConfig);
 
 const db = getFirestore(app);
 
-const auth = getAuth(app);
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
 
 export { auth, db };
 

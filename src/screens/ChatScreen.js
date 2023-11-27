@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, Button, FlatList } from "react-native";
+import React, { useState, useEffect, useLayoutEffect } from "react";
+import { GiftedChat } from "react-native-gifted-chat";
 import { auth, db } from "../../firebase";
 import {
   collection,
@@ -11,58 +11,56 @@ import {
 
 const ChatScreen = ({ route, navigation }) => {
   const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState("");
 
-  const { chatId } = route.params;
+  const { chatId, adTitle } = route.params;
+
+  // Oppdater header-tittelen basert på adTitle
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerTitle: adTitle || "Chat" });
+  }, [navigation, adTitle]);
 
   useEffect(() => {
-    if (!chatId) {
-      console.error("Chat ID is undefined");
-      return;
-    }
+    if (!chatId) return;
 
     const messagesRef = collection(db, `chats/${chatId}/messages`);
-    const q = query(messagesRef, orderBy("sentAt", "asc")); // Sorterer meldinger etter tidspunkt
+    const q = query(messagesRef, orderBy("sentAt", "desc"));
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const messagesArray = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setMessages(messagesArray);
+      setMessages(
+        querySnapshot.docs.map((doc) => ({
+          _id: doc.id,
+          text: doc.data().text,
+          createdAt: new Date(doc.data().sentAt.seconds * 1000),
+          user: {
+            _id: doc.data().sentBy,
+            // Her kan du legge til mer brukerinformasjon
+          },
+        }))
+      );
     });
 
-    return () => unsubscribe(); // Rengjør abonnementet når komponenten avmonteres
+    return () => unsubscribe();
   }, [chatId]);
 
-  const handleSendMessage = async () => {
-    if (!newMessage.trim()) return; // Forhindrer å sende tomme meldinger
-
-    const messageRef = collection(db, `chats/${chatId}/messages`);
-    await addDoc(messageRef, {
-      text: newMessage.trim(),
-      sentBy: auth.currentUser?.uid,
-      sentAt: new Date(),
+  const onSend = async (newMessages = []) => {
+    const { _id, createdAt, text, user } = newMessages[0];
+    await addDoc(collection(db, `chats/${chatId}/messages`), {
+      text,
+      sentAt: createdAt,
+      sentBy: user._id,
+      // Andre felt om nødvendig
     });
-
-    setNewMessage("");
   };
 
   return (
-    <View>
-      {/* FlatList og TextInput som før */}
-      <FlatList
-        data={messages}
-        renderItem={({ item }) => <Text>{item.text}</Text>}
-        keyExtractor={(item) => item.id}
-      />
-      <TextInput
-        value={newMessage}
-        onChangeText={setNewMessage}
-        placeholder="Skriv en melding..."
-      />
-      <Button title="Send" onPress={handleSendMessage} />
-    </View>
+    <GiftedChat
+      messages={messages}
+      onSend={(messages) => onSend(messages)}
+      user={{
+        _id: auth.currentUser.uid,
+        // Legg til mer informasjon om brukeren her om nødvendig
+      }}
+    />
   );
 };
 

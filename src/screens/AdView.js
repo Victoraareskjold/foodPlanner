@@ -9,7 +9,7 @@ import {
   Alert,
   Touchable,
 } from "react-native";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 
 import { auth, db } from "../../firebase";
@@ -64,32 +64,10 @@ const AdView = ({ route }) => {
     }
   };
 
-  const handleDeleteAd = async () => {
-    try {
-      // Vis bekreftelsesdialog før sletting
-      Alert.alert(
-        "Bekreft sletting",
-        "Er du sikker på at du vil slette denne annonsen?",
-        [
-          {
-            text: "Avbryt",
-            style: "cancel",
-          },
-          {
-            text: "Slett",
-            style: "destructive",
-            onPress: async () => {
-              const adRef = doc(db, "annonser", adData.id);
-              await deleteDoc(adRef);
-              navigation.goBack();
-            },
-          },
-        ]
-      );
-    } catch (error) {
-      console.error("Feil ved sletting av annonse:", error);
-    }
-  };
+  // Oppdater header-tittelen basert på annonsedataen
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerTitle: adData.overskrift });
+  }, [navigation, adData]);
 
   const doesChatExist = async (currentUserId, otherUserId, adId) => {
     const chatsRef = collection(db, "chats");
@@ -127,7 +105,10 @@ const AdView = ({ route }) => {
       );
 
       if (existingChatId) {
-        navigation.navigate("ChatScreen", { chatId: existingChatId });
+        navigation.navigate("ChatScreen", {
+          chatId: existingChatId,
+          adTitle: adData.overskrift,
+        });
       } else {
         const newChat = {
           adId: adData.id,
@@ -136,7 +117,10 @@ const AdView = ({ route }) => {
           createdAt: new Date(),
         };
         const newChatDocRef = await addDoc(collection(db, "chats"), newChat);
-        navigation.navigate("ChatScreen", { chatId: newChatDocRef.id });
+        navigation.navigate("ChatScreen", {
+          chatId: newChatDocRef.id,
+          adTitle: adData.overskrift,
+        });
       }
     } catch (error) {
       console.error("Feil ved opprettelse av chat:", error);

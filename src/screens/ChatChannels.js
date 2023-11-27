@@ -11,7 +11,6 @@ import {
   where,
   orderBy,
   limit,
-  onSnapshot,
 } from "firebase/firestore";
 
 const ChatChannels = () => {
@@ -32,7 +31,7 @@ const ChatChannels = () => {
     if (querySnapshot.docs.length > 0) {
       return querySnapshot.docs[0].data();
     }
-    return { text: "", sentAt: { seconds: 0 } }; // Returnerer en tom melding om ingen finnes
+    return null; // Endret til null for å indikere ingen meldinger
   };
 
   const getAdInfo = async (adId) => {
@@ -41,49 +40,53 @@ const ChatChannels = () => {
     return adDoc.data();
   };
 
-  // fetchConversations - henter samtaleinformasjon
   const fetchConversations = async () => {
     const userId = auth.currentUser.uid;
     const userChats = await getUserChats(userId);
-    const updatedConversations = await Promise.all(
-      userChats.map(async (chat) => {
-        const lastMessage = await getLastMessage(chat.id);
-        const adInfo = await getAdInfo(chat.adId);
+    const updatedConversations = (
+      await Promise.all(
+        userChats.map(async (chat) => {
+          const lastMessage = await getLastMessage(chat.id);
+          if (!lastMessage) return null; // Hopper over chater uten meldinger
 
-        return {
-          chatId: chat.id,
-          lastMessage: lastMessage.text,
-          timestamp: new Date(
-            lastMessage.sentAt.seconds * 1000
-          ).toLocaleString(),
-          adTitle: adInfo ? adInfo.overskrift : "Annonse",
-        };
-      })
-    );
+          const adInfo = await getAdInfo(chat.adId);
+          return {
+            chatId: chat.id,
+            lastMessage: lastMessage.text,
+            timestamp: new Date(
+              lastMessage.sentAt.seconds * 1000
+            ).toLocaleString(),
+            adTitle: adInfo ? adInfo.overskrift : "Annonse",
+          };
+        })
+      )
+    ).filter(Boolean); // Filtrer ut null-verdier
+
     return updatedConversations;
   };
 
   useEffect(() => {
-    // Hent data ved første lasting av komponenten
-    fetchConversations().then((data) => setConversations(data));
+    fetchConversations().then(setConversations);
   }, []);
 
   useEffect(() => {
-    // Sett opp periodisk henting hvert 10. sekund
     const intervalId = setInterval(async () => {
       const updatedConversations = await fetchConversations();
       setConversations(updatedConversations);
-    }, 10000); // 10 sekunder
+    }, 10000);
 
-    // Rengjøringsfunksjon for å avbryte intervallet
     return () => clearInterval(intervalId);
   }, []);
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
-      style={{ backgroundColor: "grey" }}
+      style={{ backgroundColor: "grey", marginBottom: 12 }}
       onPress={() => {
-        navigation.navigate("ChatScreen", { chatId: item.chatId });
+        // Når du navigerer til ChatScreen
+        navigation.navigate("ChatScreen", {
+          chatId: item.chatId,
+          adTitle: item.adTitle, // Legg til dette
+        });
       }}
     >
       <Text>{item.adTitle}</Text>
