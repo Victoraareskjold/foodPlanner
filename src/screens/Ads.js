@@ -1,29 +1,14 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  SafeAreaView,
-  TouchableOpacity,
-  Image,
-  FlatList,
-} from "react-native";
-import { useState, useEffect, useRef } from "react";
+import { StyleSheet, Text, View, SafeAreaView, FlatList } from "react-native";
+import { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 
 import { auth, db } from "../../firebase";
 import { collection, getDocs, onSnapshot } from "firebase/firestore";
-import { firestore } from "../../firebase";
 
-import WorkCard from "../components/WorkCard";
-import AdCard from "../components/AdCard";
 import AdCardList from "../components/AdCardList";
 import { categories } from "../components/Categories";
-import ProfileModal from "../components/ProfileModal";
 
-import buttons from "../../styles/buttons";
-import colors from "../../styles/colors";
 import fonts from "../../styles/fonts";
-import images from "../../styles/images";
 import containerStyles from "../../styles/containerStyles";
 
 import SearchBar from "../components/SearchBar";
@@ -47,29 +32,30 @@ export default function Ads() {
   }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const adsCollectionRef = collection(db, "annonser");
-        const snapshot = await getDocs(adsCollectionRef);
+    const adsCollectionRef = collection(db, "annonser");
+    const unsubscribe = onSnapshot(
+      adsCollectionRef,
+      (snapshot) => {
         const currentUserUID = auth.currentUser ? auth.currentUser.uid : null;
-
         const adsData = snapshot.docs
           .filter((doc) => doc.data().status === "Ikke startet")
           .filter(
             (doc) =>
-              selectedCategory === "Se alle" || // Endret her for å inkludere alle annonser når "Se alle" er valgt
+              selectedCategory === "Se alle" ||
               doc.data().kategori === selectedCategory
           )
           .filter((doc) => doc.data().uid !== currentUserUID)
           .map((doc) => ({ id: doc.id, ...doc.data() }));
 
         setAdData(adsData);
-      } catch (error) {
-        throw error;
+      },
+      (error) => {
+        // Håndter eventuelle feil her
+        console.error("Feil ved henting av annonser:", error);
       }
-    };
+    );
 
-    fetchData();
+    return () => unsubscribe(); // Rengjør abonnement når komponenten avmonteres
   }, [selectedCategory]);
 
   return (

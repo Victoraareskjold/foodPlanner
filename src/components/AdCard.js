@@ -1,41 +1,69 @@
-import { StyleSheet, Text, View, FlatList, Image, TouchableOpacity } from 'react-native'
-import React from 'react'
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  Image,
+  TouchableOpacity,
+} from "react-native";
+import React from "react";
 
-import { categories } from './Categories';
-import colors from '../../styles/colors'
+import { categories } from "./Categories";
+import colors from "../../styles/colors";
 
-import StatusButton from './StatusButton';
+import StatusButton from "./StatusButton";
 
 const AdCard = (props) => {
-  
   const { adData, navigation } = props;
-  const category = categories.find(category => category.text === adData.kategori);
+  const category = categories.find(
+    (category) => category.text === adData.kategori
+  );
 
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.cardContainer}
-      onPress={() => navigation.navigate('YourAdView', { adData: adData })}
+      onPress={() => navigation.navigate("YourAdView", { adData: adData })}
     >
       <View style={styles.textContainer}>
-
-        <Image 
-          source={require('../../assets/vedBilde.png')}
+        <Image
+          source={
+            adData.bildeUrl
+              ? { uri: adData.bildeUrl }
+              : require("../../assets/vedBilde.png")
+          }
           style={styles.image}
         />
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 0}}>
-          <Text style={{ fontSize: 18, fontWeight: '500' }}>{adData.overskrift}</Text>
-          {category && <Image source={category.icon} style={[styles.icon, { marginLeft: 8 }]} />}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            paddingVertical: 0,
+          }}
+        >
+          <Text style={{ fontSize: 18, fontWeight: "500" }}>
+            {adData.overskrift}
+          </Text>
+          {category && (
+            <Image
+              source={category.icon}
+              style={[styles.icon, { marginLeft: 8 }]}
+            />
+          )}
         </View>
-        <Text 
-          style={{ fontSize: 14, fontWeight: '400', color: 'rgba(0, 0, 0, 0.76)' }}
+        <Text
+          style={{
+            fontSize: 14,
+            fontWeight: "400",
+            color: "rgba(0, 0, 0, 0.76)",
+          }}
           numberOfLines={2}
-        >{adData.beskrivelse}</Text>
+        >
+          {adData.beskrivelse}
+        </Text>
 
-        <StatusButton status={adData.status}/>
-
+        <StatusButton status={adData.status} />
       </View>
-
     </TouchableOpacity>
   );
 };
@@ -44,7 +72,7 @@ export default AdCard;
 
 const styles = StyleSheet.create({
   image: {
-    width: '100%',
+    width: "100%",
     height: 140,
     borderRadius: 5,
     marginBottom: 16,
@@ -64,4 +92,4 @@ const styles = StyleSheet.create({
   textContainer: {
     padding: 16,
   },
-})
+});

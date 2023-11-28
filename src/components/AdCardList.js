@@ -25,7 +25,11 @@ const AdCardList = (props) => {
       onPress={() => navigation.navigate("AdView", { adData: adData })}
     >
       <Image
-        source={require("../../assets/vedBilde.png")}
+        source={
+          adData.bildeUrl
+            ? { uri: adData.bildeUrl }
+            : require("../../assets/vedBilde.png")
+        }
         style={styles.image}
       />
       <View style={styles.textContainer}>

@@ -14,7 +14,7 @@ import { db } from "../../firebase";
 
 import { categories } from "../components/Categories";
 
-const AdView = ({ route }) => {
+const YourAdView = ({ route }) => {
   const { adData } = route.params;
   const [isEditing, setIsEditing] = useState(false);
   const [newOverskrift, setNewOverskrift] = useState(adData.overskrift);
@@ -75,69 +75,82 @@ const AdView = ({ route }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>Overskrift</Text>
-      {isEditing ? (
-        <TextInput
-          style={[styles.input, styles.inputBorder]}
-          value={newOverskrift}
-          onChangeText={(text) => setNewOverskrift(text)}
+    <View style={{ flex: 1 }}>
+      {adData.bildeUrl && (
+        <Image
+          source={{ uri: adData.bildeUrl }}
+          style={{ height: 200, width: "100%" }}
         />
-      ) : (
-        <Text style={styles.text}>{newOverskrift}</Text>
       )}
-
-      <View>
-        {category && (
-          <View style={styles.categoryContainer}>
-            <Text style={styles.categoryText}>{category.text}</Text>
-            <Image source={category.icon} style={styles.icon} />
-          </View>
+      <View style={styles.container}>
+        <Text style={styles.label}>Overskrift</Text>
+        {isEditing ? (
+          <TextInput
+            style={[styles.input, styles.inputBorder]}
+            value={newOverskrift}
+            onChangeText={(text) => setNewOverskrift(text)}
+          />
+        ) : (
+          <Text style={styles.text}>{newOverskrift}</Text>
         )}
-      </View>
 
-      <Text style={styles.label}>Beskrivelse</Text>
-      {isEditing ? (
-        <TextInput
-          style={[styles.input, styles.inputBorder]}
-          value={newBeskrivelse}
-          onChangeText={(text) => setNewBeskrivelse(text)}
-          multiline={true}
-        />
-      ) : (
-        <Text style={styles.text}>{newBeskrivelse}</Text>
-      )}
+        <View>
+          {category && (
+            <View style={styles.categoryContainer}>
+              <Text style={styles.categoryText}>{category.text}</Text>
+              <Image source={category.icon} style={styles.icon} />
+            </View>
+          )}
+        </View>
 
-      <Text style={styles.label}>Sted</Text>
-      {isEditing ? (
-        <TextInput
-          style={[styles.input, styles.inputBorder]}
-          value={newSted}
-          onChangeText={(text) => setNewSted(text)}
-        />
-      ) : (
-        <Text style={styles.text}>{newSted}</Text>
-      )}
+        <Text style={styles.label}>Beskrivelse</Text>
+        {isEditing ? (
+          <TextInput
+            style={[styles.input, styles.inputBorder]}
+            value={newBeskrivelse}
+            onChangeText={(text) => setNewBeskrivelse(text)}
+            multiline={true}
+          />
+        ) : (
+          <Text style={styles.text}>{newBeskrivelse}</Text>
+        )}
 
-      {isEditing ? (
-        <TouchableOpacity style={styles.button} onPress={handleUpdateAd}>
-          <Text style={styles.buttonText}>Lagre endringer</Text>
-        </TouchableOpacity>
-      ) : (
+        <Text style={styles.label}>Sted</Text>
+        {isEditing ? (
+          <TextInput
+            style={[styles.input, styles.inputBorder]}
+            value={newSted}
+            onChangeText={(text) => setNewSted(text)}
+          />
+        ) : (
+          <Text style={styles.text}>{newSted}</Text>
+        )}
+
+        {isEditing ? (
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: "blue" }]}
+            onPress={handleUpdateAd}
+          >
+            <Text style={styles.buttonText}>Lagre endringer</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: "blue" }]}
+            onPress={() => setIsEditing(true)}
+          >
+            <Text style={styles.buttonText}>Rediger</Text>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: "blue" }]}
-          onPress={() => setIsEditing(true)}
+          style={[styles.button, { borderColor: "red", borderWidth: 1 }]}
+          onPress={handleDeleteAd}
         >
-          <Text style={styles.buttonText}>Rediger</Text>
+          <Text style={[styles.buttonText, { color: "red" }]}>
+            Slett annonse
+          </Text>
         </TouchableOpacity>
-      )}
-
-      <TouchableOpacity
-        style={[styles.button, { borderColor: "red", borderWidth: 1 }]}
-        onPress={handleDeleteAd}
-      >
-        <Text style={[styles.buttonText, { color: "red" }]}>Slett annonse</Text>
-      </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -192,4 +205,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AdView;
+export default YourAdView;
