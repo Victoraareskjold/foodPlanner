@@ -8,27 +8,24 @@ import {
   FlatList,
   ScrollView,
 } from "react-native";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 
 import { auth, db } from "../../firebase";
 import {
   collection,
-  getDocs,
   where,
   query,
   onSnapshot,
+  doc,
+  getDoc,
 } from "firebase/firestore"; // Correct import statements
-import { firestore } from "../../firebase";
 
-import WorkCard from "../components/WorkCard";
 import AdCard from "../components/AdCard";
 import { categories } from "../components/Categories";
 import ProfileModal from "../components/ProfileModal";
 import SearchBar from "../components/SearchBar";
 
-import buttons from "../../styles/buttons";
-import colors from "../../styles/colors";
 import fonts from "../../styles/fonts";
 import images from "../../styles/images";
 import containerStyles from "../../styles/containerStyles";
@@ -41,6 +38,9 @@ export default function DinSide() {
   }, []);
 
   const navigation = useNavigation();
+
+  const [userProfile, setUserProfile] = useState(null); // Deklarer state for brukerprofil
+  const [image, setImage] = useState(null);
 
   const firstSixCategories = categories.slice();
 
@@ -97,6 +97,23 @@ export default function DinSide() {
     }
   }, [auth.currentUser]);
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const userDocRef = doc(db, "users", auth.currentUser.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        setUserProfile(userData);
+        setImage(userData.profileImageUrl); // Lagrer URL-en til profilbildet i tilstanden
+      }
+    };
+
+    if (auth.currentUser) {
+      fetchUserData();
+    }
+  }, []);
+
   return (
     <ScrollView style={styles.container}>
       <SafeAreaView />
@@ -123,10 +140,17 @@ export default function DinSide() {
           </TouchableOpacity>
 
           <TouchableOpacity onPress={openProfileModal}>
-            <Image
-              source={require("../../assets/user-1.png")}
-              style={[images.icon48, { marginLeft: 8 }]}
-            />
+            {image ? (
+              <Image
+                source={{ uri: image }}
+                style={[images.icon48, { marginLeft: 8, borderRadius: 24 }]} // Sirkelformet stil
+              />
+            ) : (
+              <Image
+                source={require("../../assets/user-1.png")}
+                style={[images.icon48, { marginLeft: 8 }]}
+              />
+            )}
           </TouchableOpacity>
 
           {/* Profilmodal */}

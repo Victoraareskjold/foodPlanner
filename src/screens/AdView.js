@@ -2,14 +2,11 @@ import {
   StyleSheet,
   Text,
   View,
-  SafeAreaView,
   TouchableOpacity,
   Image,
-  FlatList,
   Alert,
-  Touchable,
 } from "react-native";
-import { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { useState, useLayoutEffect, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 
 import { auth, db } from "../../firebase";
@@ -18,33 +15,39 @@ import {
   getDocs,
   doc,
   updateDoc,
-  deleteDoc,
   addDoc,
   query,
   where,
+  getDoc,
 } from "firebase/firestore";
-import { firestore } from "../../firebase";
 
-import WorkCard from "../components/WorkCard";
-import AdCard from "../components/AdCard";
 import { categories } from "../components/Categories";
-import ProfileModal from "../components/ProfileModal";
-import StatusButton from "../components/StatusButton";
 
 import buttons from "../../styles/buttons";
 import colors from "../../styles/colors";
-import fonts from "../../styles/fonts";
-import images from "../../styles/images";
-import containerStyles from "../../styles/containerStyles";
 
 const AdView = ({ route }) => {
   const navigation = useNavigation();
-
   const { adData } = route.params;
+
+  const [ownerProfile, setOwnerProfile] = useState(null);
 
   const category = categories.find(
     (category) => category.text === adData.kategori
   );
+
+  useEffect(() => {
+    const fetchOwnerProfile = async () => {
+      const ownerDocRef = doc(db, "users", adData.uid);
+      const ownerDocSnap = await getDoc(ownerDocRef);
+
+      if (ownerDocSnap.exists()) {
+        setOwnerProfile(ownerDocSnap.data());
+      }
+    };
+
+    fetchOwnerProfile();
+  }, [adData.uid]);
 
   const [status, setStatus] = useState(adData.status);
 
@@ -137,7 +140,6 @@ const AdView = ({ route }) => {
         <Text style={{ fontSize: 24, fontWeight: "500", marginBottom: 6 }}>
           {adData.overskrift}
         </Text>
-
         <View>
           {category && (
             <View style={styles.categoryContainer}>
@@ -146,16 +148,28 @@ const AdView = ({ route }) => {
             </View>
           )}
         </View>
-
+        {/* User card */}
         <TouchableOpacity style={styles.userContainer}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Image
-              style={{ width: 40, height: 40, marginRight: 12 }}
-              source={require("../../assets/user-1.png")}
-            />
+            {ownerProfile && ownerProfile.profileImageUrl ? (
+              <Image
+                source={{ uri: ownerProfile.profileImageUrl }}
+                style={{
+                  width: 40,
+                  height: 40,
+                  marginRight: 12,
+                  borderRadius: 20,
+                }}
+              />
+            ) : (
+              <Image
+                source={require("../../assets/user-1.png")} // Erstatt med en standard brukerbilde-ressurs
+                style={{ width: 40, height: 40, marginRight: 12 }}
+              />
+            )}
             <Text style={{ fontSize: 16 }}>
-              {adData.user
-                ? `${adData.user.firstName} ${adData.user.lastName}`
+              {ownerProfile
+                ? `${ownerProfile.firstName} ${ownerProfile.lastName}`
                 : "Ukjent bruker"}
             </Text>
           </View>
@@ -164,7 +178,6 @@ const AdView = ({ route }) => {
         <TouchableOpacity style={buttons.textBtn} onPress={handleStartChat}>
           <Text style={{ fontSize: 16, color: "blue" }}>Send melding</Text>
         </TouchableOpacity>
-
         <Text>Beskrivelse</Text>
         <Text
           style={{
@@ -176,7 +189,6 @@ const AdView = ({ route }) => {
         >
           {adData.beskrivelse}
         </Text>
-
         <Text>Sted</Text>
         <Text
           style={{

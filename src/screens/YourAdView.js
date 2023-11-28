@@ -9,28 +9,10 @@ import {
 } from "react-native";
 
 import { useNavigation } from "@react-navigation/native";
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  collection,
-  addDoc,
-  getDoc,
-  updateDoc,
-} from "firebase/firestore";
-import { db, auth } from "../../firebase";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../../firebase";
 
-import WorkCard from "../components/WorkCard";
-import AdCard from "../components/AdCard";
 import { categories } from "../components/Categories";
-import ProfileModal from "../components/ProfileModal";
-import StatusButton from "../components/StatusButton";
-
-import containerStyles from "../../styles/containerStyles";
-import placeholderStyles from "../../styles/placeholderStyles";
-import buttons from "../../styles/buttons";
-import fonts from "../../styles/fonts";
-import colors from "../../styles/colors";
 
 const AdView = ({ route }) => {
   const { adData } = route.params;
