@@ -1,9 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Image, TouchableOpacity, TextInput } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  TextInput,
+  SafeAreaView,
+  StyleSheet,
+} from "react-native";
 import { auth, db, storage } from "../../firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
+import fonts from "../../styles/fonts";
+import images from "../../styles/images";
+import containerStyles from "../../styles/containerStyles";
+import Statistics from "./Statistics";
 
 const Profile = () => {
   const [userProfile, setUserProfile] = useState(null);
@@ -72,27 +85,56 @@ const Profile = () => {
   };
 
   return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <Text>Profil</Text>
-      {userProfile && (
-        <View>
-          <Text>
-            {userProfile.firstName} {userProfile.lastName}
-          </Text>
-          <Text>{userProfile.email}</Text>
-        </View>
-      )}
-      <TouchableOpacity onPress={pickImage}>
-        <Text>Last opp profilbilde</Text>
-      </TouchableOpacity>
-      {image && (
-        <Image
-          source={{ uri: image }}
-          style={{ width: 200, height: 200, borderRadius: 100 }}
-        />
-      )}
+    <View style={styles.container}>
+      <SafeAreaView />
+
+      {/* Header */}
+      <View
+        style={{
+          paddingHorizontal: 20,
+          marginTop: 32,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Text style={fonts.header}>Din side</Text>
+      </View>
+
+      {/* Name, profile etc. */}
+      <View style={containerStyles.defaultContainer}>
+        {userProfile && (
+          <View>
+            <Text>
+              {userProfile.firstName} {userProfile.lastName}
+            </Text>
+            <Text>{userProfile.email}</Text>
+          </View>
+        )}
+        <TouchableOpacity onPress={pickImage}>
+          <Text>Last opp profilbilde</Text>
+        </TouchableOpacity>
+        {image && (
+          <Image
+            source={{ uri: image }}
+            style={{ width: 200, height: 200, borderRadius: 100 }}
+          />
+        )}
+      </View>
+
+      {/* Statistics */}
+      <View style={containerStyles.defaultContainer}>
+        <Statistics />
+      </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+});
 
 export default Profile;

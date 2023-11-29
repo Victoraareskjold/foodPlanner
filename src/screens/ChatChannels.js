@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  SafeAreaView,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { auth, db } from "../../firebase";
 import {
@@ -13,7 +21,11 @@ import {
   limit,
 } from "firebase/firestore";
 
-const ChatChannels = () => {
+import fonts from "../../styles/fonts";
+import images from "../../styles/images";
+import containerStyles from "../../styles/containerStyles";
+
+export default function ChatChannels() {
   const [conversations, setConversations] = useState([]);
   const navigation = useNavigation();
 
@@ -96,7 +108,21 @@ const ChatChannels = () => {
   );
 
   return (
-    <View style={{ padding: 60 }}>
+    <View style={styles.container}>
+      <SafeAreaView />
+
+      {/* Header */}
+      <View
+        style={{
+          paddingHorizontal: 20,
+          marginTop: 32,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Text style={fonts.header}>Din side</Text>
+      </View>
       <FlatList
         data={conversations}
         renderItem={renderItem}
@@ -104,6 +130,11 @@ const ChatChannels = () => {
       />
     </View>
   );
-};
+}
 
-export default ChatChannels;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+});

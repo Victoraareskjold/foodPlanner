@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect } from "react";
-import { GiftedChat } from "react-native-gifted-chat";
+import { GiftedChat, Message } from "react-native-gifted-chat";
 import { auth, db } from "../../firebase";
 import {
   collection,
@@ -10,7 +10,7 @@ import {
   doc,
   getDoc,
 } from "firebase/firestore";
-import { View } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 const ChatScreen = ({ route, navigation }) => {
   const [messages, setMessages] = useState([]);
@@ -46,8 +46,9 @@ const ChatScreen = ({ route, navigation }) => {
             createdAt: new Date(messageData.sentAt.seconds * 1000),
             user: {
               _id: messageData.sentBy,
-              avatar: imageUrl, // Her legges profilbildet til
+              avatar: imageUrl,
             },
+            customType: messageData.customType || "normal",
           };
         })
       );
@@ -59,27 +60,79 @@ const ChatScreen = ({ route, navigation }) => {
   }, [chatId]);
 
   const onSend = async (newMessages = []) => {
-    const { _id, createdAt, text, user } = newMessages[0];
-    await addDoc(collection(db, `chats/${chatId}/messages`), {
-      text,
-      sentAt: createdAt,
-      sentBy: user._id,
-      // Andre felt om nødvendig
+    setMessages((previousMessages) =>
+      GiftedChat.append(previousMessages, newMessages)
+    );
+
+    newMessages.forEach(async (message) => {
+      await addDoc(collection(db, `chats/${chatId}/messages`), {
+        text: message.text,
+        sentAt: message.createdAt,
+        sentBy: message.user._id,
+        customType: message.customType || "normal",
+      });
     });
+  };
+
+  /* Request work start */
+  const sendStartWorkRequest = () => {
+    const requestMessage = {
+      _id: Math.random().toString(),
+      text: "Tilby å Starte Arbeid", // Eller en annen beskrivende tekst
+      createdAt: new Date(),
+      user: {
+        _id: auth.currentUser.uid,
+      },
+      customType: "workStartRequest",
+    };
+
+    onSend([requestMessage]);
+  };
+
+  const renderMessage = (props) => {
+    const { currentMessage } = props;
+
+    if (currentMessage.customType === "workStartRequest") {
+      return (
+        <View style={styles.requestBox}>
+          <Text>{currentMessage.text}</Text>
+          <TouchableOpacity>
+            <Text>Ja</Text>
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Text>Nei</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return <Message {...props} />;
   };
 
   return (
     <View style={{ backgroundColor: "white", flex: 1 }}>
+      <TouchableOpacity onPress={sendStartWorkRequest}>
+        <Text>Tilby å Starte Arbeid</Text>
+      </TouchableOpacity>
       <GiftedChat
         messages={messages}
         onSend={(messages) => onSend(messages)}
         user={{
           _id: auth.currentUser.uid,
-          // Legg til mer informasjon om brukeren her om nødvendig
         }}
+        renderMessage={renderMessage}
       />
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  requestBox: {
+    padding: 10,
+    margin: 5,
+    borderRadius: 10,
+    backgroundColor: "#f0f0f0",
+  },
+});
 
 export default ChatScreen;
