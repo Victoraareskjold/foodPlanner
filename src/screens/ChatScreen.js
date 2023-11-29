@@ -14,13 +14,38 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 const ChatScreen = ({ route, navigation }) => {
   const [messages, setMessages] = useState([]);
-
+  const adOwnerId = route.params.uid;
+  const [adData, setAdData] = useState(null);
   const { chatId, adTitle } = route.params;
 
   // Oppdater header-tittelen basert på adTitle
   useLayoutEffect(() => {
     navigation.setOptions({ headerTitle: adTitle || "Chat" });
   }, [navigation, adTitle]);
+
+  useEffect(() => {
+    const fetchAdData = async () => {
+      try {
+        // Antar at chat-dokumentet inneholder adId
+        const chatDocRef = doc(db, "chats", chatId);
+        const chatDocSnap = await getDoc(chatDocRef);
+
+        if (chatDocSnap.exists() && chatDocSnap.data().adId) {
+          const adId = chatDocSnap.data().adId;
+          const adDocRef = doc(db, "annonser", adId);
+          const adDocSnap = await getDoc(adDocRef);
+
+          if (adDocSnap.exists()) {
+            setAdData(adDocSnap.data());
+          }
+        }
+      } catch (error) {
+        console.error("Feil ved henting av annonsedata:", error);
+      }
+    };
+
+    fetchAdData();
+  }, [chatId]);
 
   useEffect(() => {
     if (!chatId) return;
@@ -76,6 +101,16 @@ const ChatScreen = ({ route, navigation }) => {
 
   /* Request work start */
   const sendStartWorkRequest = () => {
+    /* If request already exists */
+    const existingRequest = messages.find(
+      (message) => message.customType === "workStartRequest"
+    );
+
+    if (existingRequest) {
+      // Vis en advarsel hvis det allerede finnes en forespørsel
+      alert("Det finnes allerede en arbeidsstartforespørsel.");
+      return;
+    }
     const requestMessage = {
       _id: Math.random().toString(),
       text: "Tilby å Starte Arbeid", // Eller en annen beskrivende tekst
@@ -96,12 +131,16 @@ const ChatScreen = ({ route, navigation }) => {
       return (
         <View style={styles.requestBox}>
           <Text>{currentMessage.text}</Text>
-          <TouchableOpacity>
-            <Text>Ja</Text>
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Text>Nei</Text>
-          </TouchableOpacity>
+          {currentMessage.user._id !== auth.currentUser.uid && (
+            <>
+              <TouchableOpacity>
+                <Text>Ja</Text>
+              </TouchableOpacity>
+              <TouchableOpacity>
+                <Text>Nei</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       );
     }
@@ -111,9 +150,12 @@ const ChatScreen = ({ route, navigation }) => {
 
   return (
     <View style={{ backgroundColor: "white", flex: 1 }}>
-      <TouchableOpacity onPress={sendStartWorkRequest}>
-        <Text>Tilby å Starte Arbeid</Text>
-      </TouchableOpacity>
+      {console.log("adData og bruker-ID:", adData, auth.currentUser.uid)}
+      {adData && auth.currentUser.uid !== adData.uid && (
+        <TouchableOpacity onPress={sendStartWorkRequest}>
+          <Text>Tilby å Starte Arbeid</Text>
+        </TouchableOpacity>
+      )}
       <GiftedChat
         messages={messages}
         onSend={(messages) => onSend(messages)}
