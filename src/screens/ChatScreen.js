@@ -18,10 +18,8 @@ import AgreementRequestCard from "../components/AgreementRequestCard";
 
 const ChatScreen = ({ route, navigation }) => {
   const [messages, setMessages] = useState([]);
-  const adOwnerId = route.params.uid;
   const [adData, setAdData] = useState(null);
   const { chatId, adTitle } = route.params;
-  const [isAgreementConfirmed, setIsAgreementConfirmed] = useState(false);
 
   // Oppdater header-tittelen basert på adTitle
   useLayoutEffect(() => {
@@ -164,151 +162,136 @@ const ChatScreen = ({ route, navigation }) => {
 
   // Funksjon for å håndtere svar på inngå avtale forespørsel
   const handleAgreementResponse = async (response, messageId, senderId) => {
-    if (response === "Ja") {
-      try {
-        const chatDocRef = doc(db, "chats", chatId);
-        const chatDocSnap = await getDoc(chatDocRef);
-        if (chatDocSnap.exists() && chatDocSnap.data().adId) {
-          const adId = chatDocSnap.data().adId;
-          const adDocRef = doc(db, "annonser", adId);
+    const customTypeUpdate =
+      response === "Ja" ? "agreementConfirmed" : "agreementDeclined";
+    const updatedMessages = messages.map((msg) => {
+      if (msg._id === messageId) {
+        // Sjekker om den gjeldende brukeren er senderen av meldingen
+        const isCurrentUser = senderId === auth.currentUser.uid;
+        const actionText = response === "Ja" ? "godtatt" : "avslått";
+        const messageText = isCurrentUser
+          ? `Du har ${actionText} avtalen`
+          : `${msg.user.name} har ${actionText} avtalen`;
 
-          // Finn workerUid basert på hvem som sender forespørselen
-          const currentUserId = auth.currentUser.uid;
-          const participants = chatDocSnap.data().participants;
-          const workerUid = participants.find((uid) => uid !== currentUserId);
-
-          // Oppdater annonse med ny status og workerUid
-          await updateDoc(adDocRef, {
-            status: "Pågår",
-            workerUid: workerUid,
-          });
-
-          // Oppdater meldingens customType i Firestore
-          const messageDocRef = doc(db, `chats/${chatId}/messages`, messageId);
-          await updateDoc(messageDocRef, {
-            customType: "agreementConfirmed",
-          });
-        }
-
-        // Oppdater meldingsteksten
-        const updatedMessages = messages.map((msg) => {
-          if (msg._id === messageId) {
-            const isSender = senderId === auth.currentUser.uid;
-            const newMessageText = isSender
-              ? "Du har akseptert avtalen"
-              : `${msg.user.name} har akseptert avtalen`;
-            return {
-              ...msg,
-              text: newMessageText,
-              customType: "agreementConfirmed",
-            };
-          }
-          return msg;
-        });
-        setMessages(updatedMessages);
-      } catch (error) {
-        console.error("Feil ved oppdatering av annonsestatus:", error);
+        return { ...msg, text: messageText, customType: customTypeUpdate };
       }
-      setIsAgreementConfirmed(true);
-    }
-    // Håndter "Nei" svar eller andre handlinger her
+      return msg;
+    });
+
+    setMessages(updatedMessages);
+    const messageDocRef = doc(db, `chats/${chatId}/messages`, messageId);
+    await updateDoc(messageDocRef, { customType: customTypeUpdate });
   };
 
   const renderMessage = (props) => {
     const { currentMessage } = props;
     const isSender = currentMessage.user._id === auth.currentUser.uid;
 
+    // Bestemmer stilen basert på om brukeren er senderen
     const requestBoxStyle = isSender
       ? styles.requestBoxSender
       : styles.requestBoxReceiver;
 
-    /* Render for "tilby å starte arbeid" request */
-    if (currentMessage.customType === "workStartRequest") {
-      return (
-        <View style={{ paddingHorizontal: 8 }}>
-          <View style={requestBoxStyle}>
-            <Text>
-              {isSender ? "Din avtaleforespørsel" : "Avtalen er inngått"}
-            </Text>
-            {!isSender && (
-              <>
-                <TouchableOpacity
-                  onPress={() =>
-                    handleAgreementResponse("Ja", currentMessage._id)
-                  }
-                >
-                  <Text>Ja</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() =>
-                    handleAgreementResponse("Nei", currentMessage._id)
-                  }
-                >
-                  <Text>Nei</Text>
-                </TouchableOpacity>
-              </>
-            )}
+    switch (currentMessage.customType) {
+      case "workStartRequest":
+        return (
+          <View style={{ paddingHorizontal: 8 }}>
+            <View style={requestBoxStyle}>
+              <Text>
+                {isSender ? "Din avtaleforespørsel" : "Avtalen er inngått"}
+              </Text>
+              {!isSender && (
+                <>
+                  <TouchableOpacity
+                    onPress={() =>
+                      handleAgreementResponse(
+                        "Ja",
+                        currentMessage._id,
+                        auth.currentUser.uid
+                      )
+                    }
+                  >
+                    <Text>Ja</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() =>
+                      handleAgreementResponse(
+                        "Nei",
+                        currentMessage._id,
+                        auth.currentUser.uid
+                      )
+                    }
+                  >
+                    <Text>Nei</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
           </View>
-        </View>
-      );
-    }
+        );
 
-    // Render for "Inngå Avtale" request
-    if (currentMessage.customType === "agreementRequest") {
-      return (
-        <AgreementRequestCard
-          isSender={isSender}
-          userName={currentMessage.user.name}
-          onAccept={() =>
-            handleAgreementResponse(
-              "Ja",
-              currentMessage._id,
-              currentMessage.user._id
-            )
-          }
-          onDecline={() =>
-            handleAgreementResponse(
-              "Nei",
-              currentMessage._id,
-              currentMessage.user._id
-            )
-          }
-        />
-      );
-    }
+      case "agreementRequest":
+        return (
+          <AgreementRequestCard
+            isSender={isSender}
+            userName={currentMessage.user.name}
+            onAccept={() =>
+              handleAgreementResponse(
+                "Ja",
+                currentMessage._id,
+                auth.currentUser.uid
+              )
+            }
+            onDecline={() =>
+              handleAgreementResponse(
+                "Nei",
+                currentMessage._id,
+                auth.currentUser.uid
+              )
+            }
+          />
+        );
 
-    if (currentMessage.customType === "agreementConfirmed") {
-      return (
-        <View style={styles.confirmedRequestBox}>
-          <Text>
-            {isSender
-              ? "Du har akseptert avtalen"
-              : `${currentMessage.user.name} har akseptert avtalen`}
-          </Text>
-        </View>
-      );
-    }
+      case "agreementConfirmed":
+        return (
+          <View style={styles.confirmedRequestBox}>
+            <Text>
+              {currentMessage.user._id === auth.currentUser.uid
+                ? `${currentMessage.user.name} har godtatt avtalen`
+                : "Du har godtatt avtalen"}
+            </Text>
+          </View>
+        );
 
-    return <Message {...props} />;
+      case "agreementDeclined":
+        return (
+          <View style={styles.declinedRequestBox}>
+            <Text>
+              {currentMessage.user._id === auth.currentUser.uid
+                ? `${currentMessage.user.name} har avslått avtalen`
+                : "Du har godtatt avtalen"}
+            </Text>
+          </View>
+        );
+
+      default:
+        return <Message {...props} />;
+    }
   };
 
   return (
     <View style={{ backgroundColor: "white", flex: 1 }}>
-      {adData && auth.currentUser.uid !== adData.uid && (
-        <>
-          <TouchableOpacity onPress={sendAgreementRequest}>
-            <Text>Inngå Avtale</Text>
-          </TouchableOpacity>
-          {messages.some(
-            (m) =>
-              m.customType === "agreementRequest" && m.status === "godkjent"
-          ) && (
-            <TouchableOpacity onPress={sendStartWorkRequest}>
-              <Text>Tilby å Starte Arbeid</Text>
-            </TouchableOpacity>
-          )}
-        </>
+      <TouchableOpacity onPress={sendAgreementRequest}>
+        <Text>Inngå Avtale</Text>
+      </TouchableOpacity>
+      {messages.some(
+        (m) => m.customType === "agreementRequest" && m.status === "godkjent"
+      ) && (
+        <TouchableOpacity onPress={sendStartWorkRequest}>
+          <Text>Tilby å Starte Arbeid</Text>
+        </TouchableOpacity>
       )}
+
       <GiftedChat
         messages={messages}
         onSend={(messages) => onSend(messages)}
@@ -337,6 +320,12 @@ const styles = StyleSheet.create({
   },
   confirmedRequestBox: {
     backgroundColor: "#DFF0D8", // Eksempel på grønn bakgrunnsfarge
+    padding: 10,
+    margin: 5,
+    borderRadius: 10,
+  },
+  declinedRequestBox: {
+    backgroundColor: "#FFD6D6", // Rød bakgrunnsfarge
     padding: 10,
     margin: 5,
     borderRadius: 10,
