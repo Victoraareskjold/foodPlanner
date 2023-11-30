@@ -163,7 +163,7 @@ const ChatScreen = ({ route, navigation }) => {
   };
 
   // Funksjon for å håndtere svar på inngå avtale forespørsel
-  const handleAgreementResponse = async (response, messageId) => {
+  const handleAgreementResponse = async (response, messageId, senderId) => {
     if (response === "Ja") {
       try {
         const chatDocRef = doc(db, "chats", chatId);
@@ -171,12 +171,6 @@ const ChatScreen = ({ route, navigation }) => {
         if (chatDocSnap.exists() && chatDocSnap.data().adId) {
           const adId = chatDocSnap.data().adId;
           const adDocRef = doc(db, "annonser", adId);
-
-          const messagesRef = collection(db, `chats/${chatId}/messages`);
-          await updateDoc(doc(messagesRef, messageId), {
-            customType:
-              response === "Ja" ? "agreementConfirmed" : "agreementDeclined",
-          });
 
           // Finn workerUid basert på hvem som sender forespørselen
           const currentUserId = auth.currentUser.uid;
@@ -188,13 +182,25 @@ const ChatScreen = ({ route, navigation }) => {
             status: "Pågår",
             workerUid: workerUid,
           });
+
+          // Oppdater meldingens customType i Firestore
+          const messageDocRef = doc(db, `chats/${chatId}/messages`, messageId);
+          await updateDoc(messageDocRef, {
+            customType: "agreementConfirmed",
+          });
         }
+
+        // Oppdater meldingsteksten
         const updatedMessages = messages.map((msg) => {
           if (msg._id === messageId) {
+            const isSender = senderId === auth.currentUser.uid;
+            const newMessageText = isSender
+              ? "Du har akseptert avtalen"
+              : `${msg.user.name} har akseptert avtalen`;
             return {
               ...msg,
-              customType:
-                response === "Ja" ? "agreementConfirmed" : "agreementDeclined",
+              text: newMessageText,
+              customType: "agreementConfirmed",
             };
           }
           return msg;
@@ -221,7 +227,9 @@ const ChatScreen = ({ route, navigation }) => {
       return (
         <View style={{ paddingHorizontal: 8 }}>
           <View style={requestBoxStyle}>
-            <Text>{isSender ? "Din avtaleforespørsel" : "Inngå Avtale"}</Text>
+            <Text>
+              {isSender ? "Din avtaleforespørsel" : "Avtalen er inngått"}
+            </Text>
             {!isSender && (
               <>
                 <TouchableOpacity
@@ -250,10 +258,34 @@ const ChatScreen = ({ route, navigation }) => {
       return (
         <AgreementRequestCard
           isSender={isSender}
-          userName={currentMessage.user.name} // Anta at brukernavnet er lagret i message.user.name
-          onAccept={() => handleAgreementResponse("Ja", currentMessage._id)}
-          onDecline={() => handleAgreementResponse("Nei", currentMessage._id)}
+          userName={currentMessage.user.name}
+          onAccept={() =>
+            handleAgreementResponse(
+              "Ja",
+              currentMessage._id,
+              currentMessage.user._id
+            )
+          }
+          onDecline={() =>
+            handleAgreementResponse(
+              "Nei",
+              currentMessage._id,
+              currentMessage.user._id
+            )
+          }
         />
+      );
+    }
+
+    if (currentMessage.customType === "agreementConfirmed") {
+      return (
+        <View style={styles.confirmedRequestBox}>
+          <Text>
+            {isSender
+              ? "Du har akseptert avtalen"
+              : `${currentMessage.user.name} har akseptert avtalen`}
+          </Text>
+        </View>
       );
     }
 
