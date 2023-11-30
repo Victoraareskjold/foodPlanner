@@ -43,6 +43,7 @@ export default function ChatChannels() {
     if (querySnapshot.docs.length > 0) {
       return querySnapshot.docs[0].data();
     }
+
     return null; // Endret til null for å indikere ingen meldinger
   };
 

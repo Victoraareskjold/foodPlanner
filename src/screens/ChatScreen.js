@@ -9,14 +9,19 @@ import {
   onSnapshot,
   doc,
   getDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import colors from "../../styles/colors";
+
+import AgreementRequestCard from "../components/AgreementRequestCard";
 
 const ChatScreen = ({ route, navigation }) => {
   const [messages, setMessages] = useState([]);
   const adOwnerId = route.params.uid;
   const [adData, setAdData] = useState(null);
   const { chatId, adTitle } = route.params;
+  const [isAgreementConfirmed, setIsAgreementConfirmed] = useState(false);
 
   // Oppdater header-tittelen basert på adTitle
   useLayoutEffect(() => {
@@ -72,8 +77,9 @@ const ChatScreen = ({ route, navigation }) => {
             user: {
               _id: messageData.sentBy,
               avatar: imageUrl,
+              name: messageData.userName,
             },
-            customType: messageData.customType || "normal",
+            customType: messageData.customType,
           };
         })
       );
@@ -85,18 +91,28 @@ const ChatScreen = ({ route, navigation }) => {
   }, [chatId]);
 
   const onSend = async (newMessages = []) => {
+    const senderId = auth.currentUser.uid;
+    const senderDocRef = doc(db, "users", senderId);
+    const senderDocSnap = await getDoc(senderDocRef);
+
     setMessages((previousMessages) =>
       GiftedChat.append(previousMessages, newMessages)
     );
 
-    newMessages.forEach(async (message) => {
-      await addDoc(collection(db, `chats/${chatId}/messages`), {
-        text: message.text,
-        sentAt: message.createdAt,
-        sentBy: message.user._id,
-        customType: message.customType || "normal",
+    if (senderDocSnap.exists()) {
+      const senderData = senderDocSnap.data();
+      const senderName = `${senderData.firstName} ${senderData.lastName}`; // Anta at brukernavn er lagret i disse feltene
+
+      newMessages.forEach(async (message) => {
+        await addDoc(collection(db, `chats/${chatId}/messages`), {
+          text: message.text,
+          sentAt: message.createdAt,
+          sentBy: message.user._id,
+          userName: senderName, // Her legges brukernavn til
+          customType: message.customType || "normal",
+        });
       });
-    });
+    }
   };
 
   /* Request work start */
@@ -124,24 +140,120 @@ const ChatScreen = ({ route, navigation }) => {
     onSend([requestMessage]);
   };
 
+  // Funksjon for å sende inngå avtale forespørsel
+  const sendAgreementRequest = () => {
+    const existingAgreementRequest = messages.find(
+      (message) => message.customType === "agreementRequest"
+    );
+
+    if (existingAgreementRequest) {
+      alert("Det finnes allerede en avtaleforespørsel.");
+      return;
+    }
+
+    const agreementMessage = {
+      _id: Math.random().toString(),
+      text: "Inngå Avtale",
+      createdAt: new Date(),
+      user: { _id: auth.currentUser.uid },
+      customType: "agreementRequest",
+    };
+
+    onSend([agreementMessage]);
+  };
+
+  // Funksjon for å håndtere svar på inngå avtale forespørsel
+  const handleAgreementResponse = async (response, messageId) => {
+    if (response === "Ja") {
+      try {
+        const chatDocRef = doc(db, "chats", chatId);
+        const chatDocSnap = await getDoc(chatDocRef);
+        if (chatDocSnap.exists() && chatDocSnap.data().adId) {
+          const adId = chatDocSnap.data().adId;
+          const adDocRef = doc(db, "annonser", adId);
+
+          const messagesRef = collection(db, `chats/${chatId}/messages`);
+          await updateDoc(doc(messagesRef, messageId), {
+            customType:
+              response === "Ja" ? "agreementConfirmed" : "agreementDeclined",
+          });
+
+          // Finn workerUid basert på hvem som sender forespørselen
+          const currentUserId = auth.currentUser.uid;
+          const participants = chatDocSnap.data().participants;
+          const workerUid = participants.find((uid) => uid !== currentUserId);
+
+          // Oppdater annonse med ny status og workerUid
+          await updateDoc(adDocRef, {
+            status: "Pågår",
+            workerUid: workerUid,
+          });
+        }
+        const updatedMessages = messages.map((msg) => {
+          if (msg._id === messageId) {
+            return {
+              ...msg,
+              customType:
+                response === "Ja" ? "agreementConfirmed" : "agreementDeclined",
+            };
+          }
+          return msg;
+        });
+        setMessages(updatedMessages);
+      } catch (error) {
+        console.error("Feil ved oppdatering av annonsestatus:", error);
+      }
+      setIsAgreementConfirmed(true);
+    }
+    // Håndter "Nei" svar eller andre handlinger her
+  };
+
   const renderMessage = (props) => {
     const { currentMessage } = props;
+    const isSender = currentMessage.user._id === auth.currentUser.uid;
 
+    const requestBoxStyle = isSender
+      ? styles.requestBoxSender
+      : styles.requestBoxReceiver;
+
+    /* Render for "tilby å starte arbeid" request */
     if (currentMessage.customType === "workStartRequest") {
       return (
-        <View style={styles.requestBox}>
-          <Text>{currentMessage.text}</Text>
-          {currentMessage.user._id !== auth.currentUser.uid && (
-            <>
-              <TouchableOpacity>
-                <Text>Ja</Text>
-              </TouchableOpacity>
-              <TouchableOpacity>
-                <Text>Nei</Text>
-              </TouchableOpacity>
-            </>
-          )}
+        <View style={{ paddingHorizontal: 8 }}>
+          <View style={requestBoxStyle}>
+            <Text>{isSender ? "Din avtaleforespørsel" : "Inngå Avtale"}</Text>
+            {!isSender && (
+              <>
+                <TouchableOpacity
+                  onPress={() =>
+                    handleAgreementResponse("Ja", currentMessage._id)
+                  }
+                >
+                  <Text>Ja</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() =>
+                    handleAgreementResponse("Nei", currentMessage._id)
+                  }
+                >
+                  <Text>Nei</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
         </View>
+      );
+    }
+
+    // Render for "Inngå Avtale" request
+    if (currentMessage.customType === "agreementRequest") {
+      return (
+        <AgreementRequestCard
+          isSender={isSender}
+          userName={currentMessage.user.name} // Anta at brukernavnet er lagret i message.user.name
+          onAccept={() => handleAgreementResponse("Ja", currentMessage._id)}
+          onDecline={() => handleAgreementResponse("Nei", currentMessage._id)}
+        />
       );
     }
 
@@ -150,11 +262,20 @@ const ChatScreen = ({ route, navigation }) => {
 
   return (
     <View style={{ backgroundColor: "white", flex: 1 }}>
-      {console.log("adData og bruker-ID:", adData, auth.currentUser.uid)}
       {adData && auth.currentUser.uid !== adData.uid && (
-        <TouchableOpacity onPress={sendStartWorkRequest}>
-          <Text>Tilby å Starte Arbeid</Text>
-        </TouchableOpacity>
+        <>
+          <TouchableOpacity onPress={sendAgreementRequest}>
+            <Text>Inngå Avtale</Text>
+          </TouchableOpacity>
+          {messages.some(
+            (m) =>
+              m.customType === "agreementRequest" && m.status === "godkjent"
+          ) && (
+            <TouchableOpacity onPress={sendStartWorkRequest}>
+              <Text>Tilby å Starte Arbeid</Text>
+            </TouchableOpacity>
+          )}
+        </>
       )}
       <GiftedChat
         messages={messages}
@@ -169,11 +290,24 @@ const ChatScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  requestBox: {
+  requestBox: {},
+  requestBoxSender: {
+    backgroundColor: colors.primary,
+    paddingVertical: 20,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  requestBoxReceiver: {
+    backgroundColor: colors.primary,
+    paddingVertical: 20,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  confirmedRequestBox: {
+    backgroundColor: "#DFF0D8", // Eksempel på grønn bakgrunnsfarge
     padding: 10,
     margin: 5,
     borderRadius: 10,
-    backgroundColor: "#f0f0f0",
   },
 });
 
