@@ -21,6 +21,9 @@ const ChatScreen = ({ route, navigation }) => {
   const [adData, setAdData] = useState(null);
   const { chatId, adTitle } = route.params;
 
+  const [isAgreementRequested, setIsAgreementRequested] = useState(false);
+  const [isAgreementConfirmed, setIsAgreementConfirmed] = useState(false);
+
   // Oppdater header-tittelen basert på adTitle
   useLayoutEffect(() => {
     navigation.setOptions({ headerTitle: adTitle || "Chat" });
@@ -139,7 +142,7 @@ const ChatScreen = ({ route, navigation }) => {
   };
 
   // Funksjon for å sende inngå avtale forespørsel
-  const sendAgreementRequest = () => {
+  const sendAgreementRequest = async () => {
     const existingAgreementRequest = messages.find(
       (message) => message.customType === "agreementRequest"
     );
@@ -158,10 +161,34 @@ const ChatScreen = ({ route, navigation }) => {
     };
 
     onSend([agreementMessage]);
+    setIsAgreementRequested(true);
+
+    // Oppdater chatdokumentet med avtaleforespørselstatus
+    const chatDocRef = doc(db, "chats", chatId);
+    await updateDoc(chatDocRef, {
+      agreementRequested: true,
+    });
   };
 
+  // Når du henter chatdata
+  useEffect(() => {
+    const fetchChatData = async () => {
+      const chatDocRef = doc(db, "chats", chatId);
+      const chatDocSnap = await getDoc(chatDocRef);
+
+      if (chatDocSnap.exists()) {
+        // Sjekk om avtaleforespørsel allerede er sendt
+        const isAgreementRequested =
+          chatDocSnap.data().agreementRequested || false;
+        setIsAgreementRequested(isAgreementRequested);
+      }
+    };
+
+    fetchChatData();
+  }, [chatId]);
+
   // Funksjon for å håndtere svar på inngå avtale forespørsel
-  const handleAgreementResponse = async (response, messageId, senderId) => {
+  const handleAgreementResponse = async (response, messageId, responderId) => {
     try {
       const chatDocRef = doc(db, "chats", chatId);
       const chatDocSnap = await getDoc(chatDocRef);
@@ -180,18 +207,30 @@ const ChatScreen = ({ route, navigation }) => {
         return;
       }
 
-      const adOwnerId = adDocSnap.data().uid; // Eieren av annonsen
-      const workerUid =
-        senderId !== adOwnerId
-          ? senderId
-          : chatDocSnap.data().participants.find((uid) => uid !== senderId);
+      // Finn brukerens navn som responderer
+      const responderDocRef = doc(db, "users", responderId);
+      const responderDocSnap = await getDoc(responderDocRef);
+      const responderName = responderDocSnap.exists()
+        ? `${responderDocSnap.data().firstName} ${
+            responderDocSnap.data().lastName
+          }`
+        : "Ukjent bruker";
 
       if (response === "Ja") {
         // Oppdater annonsestatus og workerUid i Firestore
         await updateDoc(adDocRef, {
           status: "Pågår",
-          workerUid: workerUid,
+          workerUid: responderId,
         });
+
+        // Oppdater chatdokumentet med avtalebekreftelsesstatus
+        const chatDocRef = doc(db, "chats", chatId);
+        await updateDoc(chatDocRef, {
+          agreementConfirmed: true,
+        });
+
+        // Sett avtalen som bekreftet
+        setIsAgreementConfirmed(true);
 
         // Oppdater meldingens customType i Firestore
         const messageDocRef = doc(db, `chats/${chatId}/messages`, messageId);
@@ -202,10 +241,8 @@ const ChatScreen = ({ route, navigation }) => {
         // Oppdater meldingsteksten
         const updatedMessages = messages.map((msg) => {
           if (msg._id === messageId) {
-            const isSender = senderId === auth.currentUser.uid;
-            const newMessageText = isSender
-              ? "Du har akseptert avtalen"
-              : `${msg.user.name} har akseptert avtalen`;
+            const newMessageText = `${responderName} har godtatt avtalen`;
+
             return {
               ...msg,
               text: newMessageText,
@@ -215,7 +252,7 @@ const ChatScreen = ({ route, navigation }) => {
           return msg;
         });
 
-        // Oppdater eventuell tilstandslogikk eller UI her basert på den oppdaterte meldingen
+        setMessages(updatedMessages);
       } else if (response === "Nei") {
         // Håndter avslag av avtalen her
         // Du kan legge til kode her for å håndtere situasjonen når avtalen avslås
@@ -299,7 +336,8 @@ const ChatScreen = ({ route, navigation }) => {
           <View style={styles.confirmedRequestBox}>
             <Text>
               {currentMessage.user._id === auth.currentUser.uid
-                ? `${currentMessage.user.name} har godtatt avtalen`
+                ? /* ? `${currentMessage.user.name} har godtatt avtalen` */
+                  `Avtalen er inngått.`
                 : "Du har godtatt avtalen"}
             </Text>
           </View>
@@ -310,8 +348,9 @@ const ChatScreen = ({ route, navigation }) => {
           <View style={styles.declinedRequestBox}>
             <Text>
               {currentMessage.user._id === auth.currentUser.uid
-                ? `${currentMessage.user.name} har avslått avtalen`
-                : "Du har godtatt avtalen"}
+                ? /* ? `${currentMessage.user.name} har avslått avtalen` */
+                  `Avtalen er avbrutt.`
+                : "Du har avbrutt avtalen"}
             </Text>
           </View>
         );
@@ -321,16 +360,33 @@ const ChatScreen = ({ route, navigation }) => {
     }
   };
 
+  useEffect(() => {
+    const chatDocRef = doc(db, "chats", chatId);
+
+    // Lytter til endringer i chat-dokumentet
+    const unsubscribe = onSnapshot(chatDocRef, (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        // Oppdater lokal tilstand basert på om en avtaleforespørsel er sendt
+        setIsAgreementRequested(data.agreementRequested || false);
+        setIsAgreementConfirmed(data.agreementConfirmed || false);
+      }
+    });
+
+    return () => unsubscribe(); // Rydd opp lytteren når komponenten unmounts
+  }, [chatId]);
+
   return (
     <View style={{ backgroundColor: "white", flex: 1 }}>
-      <TouchableOpacity onPress={sendAgreementRequest}>
-        <Text>Inngå Avtale</Text>
-      </TouchableOpacity>
-      {messages.some(
-        (m) => m.customType === "agreementRequest" && m.status === "godkjent"
-      ) && (
+      {!isAgreementRequested && (
+        <TouchableOpacity onPress={sendAgreementRequest}>
+          <Text>Inngå Avtale</Text>
+        </TouchableOpacity>
+      )}
+
+      {isAgreementConfirmed && (
         <TouchableOpacity onPress={sendStartWorkRequest}>
-          <Text>Tilby å Starte Arbeid</Text>
+          <Text>Start Arbeid</Text>
         </TouchableOpacity>
       )}
 
