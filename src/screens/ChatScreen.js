@@ -162,25 +162,67 @@ const ChatScreen = ({ route, navigation }) => {
 
   // Funksjon for å håndtere svar på inngå avtale forespørsel
   const handleAgreementResponse = async (response, messageId, senderId) => {
-    const customTypeUpdate =
-      response === "Ja" ? "agreementConfirmed" : "agreementDeclined";
-    const updatedMessages = messages.map((msg) => {
-      if (msg._id === messageId) {
-        // Sjekker om den gjeldende brukeren er senderen av meldingen
-        const isCurrentUser = senderId === auth.currentUser.uid;
-        const actionText = response === "Ja" ? "godtatt" : "avslått";
-        const messageText = isCurrentUser
-          ? `Du har ${actionText} avtalen`
-          : `${msg.user.name} har ${actionText} avtalen`;
+    try {
+      const chatDocRef = doc(db, "chats", chatId);
+      const chatDocSnap = await getDoc(chatDocRef);
 
-        return { ...msg, text: messageText, customType: customTypeUpdate };
+      if (!chatDocSnap.exists()) {
+        console.error("No such document!");
+        return;
       }
-      return msg;
-    });
 
-    setMessages(updatedMessages);
-    const messageDocRef = doc(db, `chats/${chatId}/messages`, messageId);
-    await updateDoc(messageDocRef, { customType: customTypeUpdate });
+      const adId = chatDocSnap.data().adId;
+      const adDocRef = doc(db, "annonser", adId);
+      const adDocSnap = await getDoc(adDocRef);
+
+      if (!adDocSnap.exists()) {
+        console.error("No such document!");
+        return;
+      }
+
+      const adOwnerId = adDocSnap.data().uid; // Eieren av annonsen
+      const workerUid =
+        senderId !== adOwnerId
+          ? senderId
+          : chatDocSnap.data().participants.find((uid) => uid !== senderId);
+
+      if (response === "Ja") {
+        // Oppdater annonsestatus og workerUid i Firestore
+        await updateDoc(adDocRef, {
+          status: "Pågår",
+          workerUid: workerUid,
+        });
+
+        // Oppdater meldingens customType i Firestore
+        const messageDocRef = doc(db, `chats/${chatId}/messages`, messageId);
+        await updateDoc(messageDocRef, {
+          customType: "agreementConfirmed",
+        });
+
+        // Oppdater meldingsteksten
+        const updatedMessages = messages.map((msg) => {
+          if (msg._id === messageId) {
+            const isSender = senderId === auth.currentUser.uid;
+            const newMessageText = isSender
+              ? "Du har akseptert avtalen"
+              : `${msg.user.name} har akseptert avtalen`;
+            return {
+              ...msg,
+              text: newMessageText,
+              customType: "agreementConfirmed",
+            };
+          }
+          return msg;
+        });
+
+        // Oppdater eventuell tilstandslogikk eller UI her basert på den oppdaterte meldingen
+      } else if (response === "Nei") {
+        // Håndter avslag av avtalen her
+        // Du kan legge til kode her for å håndtere situasjonen når avtalen avslås
+      }
+    } catch (error) {
+      console.error("Error updating document: ", error);
+    }
   };
 
   const renderMessage = (props) => {

@@ -68,21 +68,47 @@ export default function DinSide() {
   const fetchAdsFromDatabase = (userUid) => {
     const adsCollectionRef = collection(db, "annonser");
 
-    // Set up a real-time listener for changes to the 'annonser' collection
-    const unsubscribe = onSnapshot(
+    // Funksjon for å kombinere og oppdatere annonser
+    const updateAds = (newAds, existingAds) => {
+      // Fjern duplikater og kombiner
+      const combinedAds = [
+        ...newAds,
+        ...existingAds.filter(
+          (ad) => !newAds.find((newAd) => newAd.id === ad.id)
+        ),
+      ];
+      setAdData(combinedAds);
+    };
+
+    // Lytter for annonser hvor brukeren er eier
+    const unsubscribeOwner = onSnapshot(
       query(adsCollectionRef, where("uid", "==", userUid)),
       (snapshot) => {
-        const adsData = snapshot.docs.map((doc) => ({
+        const ownerAds = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-        console.log("Fetched ads");
-        setAdData(adsData);
+        updateAds(ownerAds, adData);
       }
     );
 
-    // Clean up the listener when the component is unmounted
-    return unsubscribe;
+    // Lytter for annonser hvor brukeren er arbeider
+    const unsubscribeWorker = onSnapshot(
+      query(adsCollectionRef, where("workerUid", "==", userUid)),
+      (snapshot) => {
+        const workerAds = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        updateAds(workerAds, adData);
+      }
+    );
+
+    // Returnerer en funksjon for å avslutte lytterne
+    return () => {
+      unsubscribeOwner();
+      unsubscribeWorker();
+    };
   };
 
   useEffect(() => {
