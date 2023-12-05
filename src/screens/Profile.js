@@ -39,7 +39,9 @@ const Profile = () => {
       const userDocSnap = await getDoc(userDocRef);
 
       if (userDocSnap.exists()) {
-        setUserProfile(userDocSnap.data());
+        let userData = userDocSnap.data();
+
+        setUserProfile(userData);
       }
     };
 
@@ -109,6 +111,21 @@ const Profile = () => {
               {userProfile.firstName} {userProfile.lastName}
             </Text>
             <Text>{userProfile.email}</Text>
+          </View>
+        )}
+        {userProfile && (
+          <View>
+            {image ? (
+              <Image
+                source={{ uri: userProfile.profileImageUrl }}
+                style={{ width: 200, height: 200, borderRadius: 100 }}
+              />
+            ) : (
+              <Image
+                source={require("../../assets/user-1.png")}
+                style={{ width: 200, height: 200, borderRadius: 100 }}
+              />
+            )}
           </View>
         )}
         <TouchableOpacity onPress={pickImage}>

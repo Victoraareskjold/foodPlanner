@@ -233,6 +233,9 @@ export default function DinSide() {
             showsHorizontalScrollIndicator={false}
             data={adData}
             keyExtractor={(item) => item.id.toString()}
+            ListHeaderComponent={() =>
+              !adData.length ? <Text>Her var det tomt</Text> : null
+            }
             renderItem={({ item }) => (
               <AdCard adData={item} navigation={navigation} />
             )}
