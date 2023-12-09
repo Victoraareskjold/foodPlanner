@@ -34,35 +34,37 @@ const AdCard = (props) => {
           style={styles.image}
         />
 
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            paddingVertical: 0,
-          }}
-        >
-          <Text style={{ fontSize: 18, fontWeight: "500" }}>
-            {adData.overskrift}
+        <View style={{ padding: 16 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              paddingVertical: 0,
+            }}
+          >
+            <Text style={{ fontSize: 18, fontWeight: "500" }}>
+              {adData.overskrift}
+            </Text>
+            {category && (
+              <Image
+                source={category.icon}
+                style={[styles.icon, { marginLeft: 8 }]}
+              />
+            )}
+          </View>
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: "400",
+              color: "rgba(0, 0, 0, 0.76)",
+            }}
+            numberOfLines={2}
+          >
+            {adData.beskrivelse}
           </Text>
-          {category && (
-            <Image
-              source={category.icon}
-              style={[styles.icon, { marginLeft: 8 }]}
-            />
-          )}
-        </View>
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: "400",
-            color: "rgba(0, 0, 0, 0.76)",
-          }}
-          numberOfLines={2}
-        >
-          {adData.beskrivelse}
-        </Text>
 
-        <StatusButton status={adData.status} />
+          <StatusButton status={adData.status} />
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -90,6 +92,6 @@ const styles = StyleSheet.create({
     borderColor: colors.lightGrey,
   },
   textContainer: {
-    padding: 16,
+    padding: 0,
   },
 });

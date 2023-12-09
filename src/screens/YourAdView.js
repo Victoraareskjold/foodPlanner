@@ -6,10 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  Alert,
 } from "react-native";
 
 import { useNavigation } from "@react-navigation/native";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../../firebase";
 
 import { categories } from "../components/Categories";

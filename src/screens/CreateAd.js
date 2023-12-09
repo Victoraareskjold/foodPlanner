@@ -11,7 +11,7 @@ import {
 } from "react-native";
 
 import { useNavigation } from "@react-navigation/native";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 
 import { auth, db, storage } from "../../firebase";
 import {
@@ -32,6 +32,8 @@ import buttons from "../../styles/buttons";
 import fonts from "../../styles/fonts";
 import colors from "../../styles/colors";
 
+import CategorySelector from "../components/CategorySelector";
+
 import * as ImagePicker from "expo-image-picker";
 import {
   ref as storageRef,
@@ -40,7 +42,6 @@ import {
 } from "firebase/storage";
 
 export default function CreateAd({ route }) {
-  const { category } = route.params;
   const navigation = useNavigation();
 
   const [imageUri, setImageUri] = useState(null);
@@ -48,8 +49,8 @@ export default function CreateAd({ route }) {
   const [overskrift, setOverskrift] = useState("");
   const [beskrivelse, setBeskrivelse] = useState("");
   const [sted, setSted] = useState("");
-
   const [status, setStatus] = useState("Ikke startet"); // Default status
+  const [kategori, setKategori] = useState("");
 
   const [isUploading, setIsUploading] = useState(false); // Ny tilstandsvariabel
 
@@ -82,7 +83,7 @@ export default function CreateAd({ route }) {
         overskrift,
         beskrivelse,
         sted,
-        kategori: category,
+        kategori,
         uid: userUID,
         status,
         bildeUrl: imageUrl || null, // Sett bildeUrl til null hvis imageUrl ikke er tilgjengelig
@@ -160,15 +161,12 @@ export default function CreateAd({ route }) {
             onChangeText={(text) => setOverskrift(text)}
           />
 
-          <View
-            style={{
-              marginBottom: 12,
-              backgroundColor: colors.lightPrimary,
-              padding: 6,
-              borderRadius: 5,
-            }}
-          >
-            <Text>Kategori: {category}</Text>
+          <View style={{ marginBottom: 20 }}>
+            <CategorySelector
+              onSelectCategory={(selectedCategory) =>
+                setKategori(selectedCategory)
+              }
+            />
           </View>
 
           <Text>Beskrivelse</Text>

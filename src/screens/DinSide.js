@@ -29,6 +29,7 @@ import SearchBar from "../components/SearchBar";
 import fonts from "../../styles/fonts";
 import images from "../../styles/images";
 import containerStyles from "../../styles/containerStyles";
+import buttons from "../../styles/buttons";
 
 export default function DinSide() {
   useEffect(() => {
@@ -65,20 +66,23 @@ export default function DinSide() {
 
   const [adData, setAdData] = useState([]);
 
+  const updateAds = (newAds, existingAds) => {
+    const adsMap = new Map();
+
+    if (Array.isArray(existingAds)) {
+      existingAds.forEach((ad) => adsMap.set(ad.id, ad));
+    }
+
+    if (Array.isArray(newAds)) {
+      newAds.forEach((ad) => adsMap.set(ad.id, ad));
+    }
+
+    const combinedAds = Array.from(adsMap.values());
+    return combinedAds;
+  };
+
   const fetchAdsFromDatabase = (userUid) => {
     const adsCollectionRef = collection(db, "annonser");
-
-    // Funksjon for å kombinere og oppdatere annonser
-    const updateAds = (newAds, existingAds) => {
-      // Fjern duplikater og kombiner
-      const combinedAds = [
-        ...newAds,
-        ...existingAds.filter(
-          (ad) => !newAds.find((newAd) => newAd.id === ad.id)
-        ),
-      ];
-      setAdData(combinedAds);
-    };
 
     // Lytter for annonser hvor brukeren er eier
     const unsubscribeOwner = onSnapshot(
@@ -88,7 +92,7 @@ export default function DinSide() {
           id: doc.id,
           ...doc.data(),
         }));
-        updateAds(ownerAds, adData);
+        setAdData((existingAds) => updateAds(ownerAds, existingAds));
       }
     );
 
@@ -100,11 +104,11 @@ export default function DinSide() {
           id: doc.id,
           ...doc.data(),
         }));
-        updateAds(workerAds, adData);
+        setAdData((existingAds) => updateAds(workerAds, existingAds));
       }
     );
 
-    // Returnerer en funksjon for å avslutte lytterne
+    // Returner en funksjon for å avbryte abonnementet
     return () => {
       unsubscribeOwner();
       unsubscribeWorker();
@@ -115,11 +119,7 @@ export default function DinSide() {
     const user = auth.currentUser;
     if (user) {
       const unsubscribe = fetchAdsFromDatabase(user.uid);
-
-      return () => {
-        // Clean up the listener when the component is unmounted
-        unsubscribe();
-      };
+      return () => unsubscribe(); // Avslutter lytterne når komponenten avmonteres
     }
   }, [auth.currentUser]);
 
@@ -139,6 +139,12 @@ export default function DinSide() {
       fetchUserData();
     }
   }, []);
+
+  useEffect(() => {}, [adData]); // Dette vil kjøre hver gang adData endres
+
+  const removeAdFromList = (adId) => {
+    setAdData((currentAds) => currentAds.filter((ad) => ad.id !== adId));
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -187,17 +193,36 @@ export default function DinSide() {
         </View>
       </View>
 
+      {/* Pågående arbeid */}
+      {adData.length > 0 && (
+        <View style={containerStyles.defaultContainer}>
+          <Text style={fonts.subHeader}>Aktive jobber & søknader</Text>
+
+          <View style={{ marginTop: 20 }}>
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={adData}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <AdCard adData={item} navigation={navigation} />
+              )}
+            />
+          </View>
+        </View>
+      )}
+
       {/* Hva trenger du hjelp med? */}
       <View style={containerStyles.defaultContainer}>
         <Text style={fonts.subHeader}>Hva trenger du hjelp med?</Text>
 
         {/* Searchbar */}
-        <View style={{ marginTop: 12 }}>
+        {/* <View style={{ marginTop: 12 }}>
           <SearchBar placeholder={"Søk etter kategorier"} />
-        </View>
+        </View> */}
 
         {/* cards */}
-        <ScrollView
+        {/* <ScrollView
           style={styles.cardGrid}
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -220,27 +245,39 @@ export default function DinSide() {
               }}
             />
           ))}
-        </ScrollView>
+        </ScrollView> */}
+        <View style={styles.buttonContainer}>
+          {/* create ad */}
+          <TouchableOpacity
+            style={buttons.iconButton}
+            onPress={() => navigation.navigate("Ads")}
+          >
+            <Image
+              style={{ width: 24, height: 24, marginBottom: 12 }}
+              source={require("../../assets/search.png")}
+            />
+            <Text style={fonts.btnBody}>Finn arbeid</Text>
+          </TouchableOpacity>
+
+          {/* View ads */}
+          <TouchableOpacity
+            style={buttons.iconButton}
+            onPress={() => navigation.navigate("CreateAd")}
+          >
+            <Image
+              style={{ width: 24, height: 24, marginBottom: 12 }}
+              source={require("../../assets/plus.png")}
+            />
+            <Text style={fonts.btnBody}>Opprett annonse</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Pågående arbeid */}
       <View style={containerStyles.defaultContainer}>
-        <Text style={fonts.subHeader}>Pågående arbeid</Text>
+        <Text style={fonts.subHeader}>Fullfør oppsett av profil</Text>
 
-        <View style={{ marginTop: 16 }}>
-          <FlatList
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            data={adData}
-            keyExtractor={(item) => item.id.toString()}
-            ListHeaderComponent={() =>
-              !adData.length ? <Text>Her var det tomt</Text> : null
-            }
-            renderItem={({ item }) => (
-              <AdCard adData={item} navigation={navigation} />
-            )}
-          />
-        </View>
+        <View style={{ marginTop: 16 }}></View>
       </View>
     </ScrollView>
   );
@@ -272,5 +309,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     alignSelf: "center",
+  },
+  buttonContainer: {
+    marginTop: 20,
+    flexDirection: "row",
+    Width: "100%",
+    justifyContent: "space-between",
+    gap: 20,
   },
 });
