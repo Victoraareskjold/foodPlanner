@@ -27,21 +27,28 @@ import images from "../../styles/images";
 import containerStyles from "../../styles/containerStyles";
 import SearchBar from "../components/SearchBar";
 
+const categorizeConversations = (conversations) => {
+  const activeConversations = conversations.filter(
+    (conv) => conv.adStatus === "Ikke startet" || conv.adStatus === "Påbegynt"
+  );
+  const otherConversations = conversations.filter(
+    (conv) => conv.adStatus !== "Ikke startet" && conv.adStatus !== "Påbegynt"
+  );
+
+  return { activeConversations, otherConversations };
+};
+
 export default function ChatChannels() {
   const [conversations, setConversations] = useState([]);
   const navigation = useNavigation();
+  const [activeConversations, setActiveConversations] = useState([]);
+  const [otherConversations, setOtherConversations] = useState([]);
 
   const getUserChats = async (userId) => {
     const chatsRef = collection(db, "chats");
     const q = query(chatsRef, where("participants", "array-contains", userId));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-  };
-
-  const getUserInfo = async (userId) => {
-    const userRef = doc(db, "users", userId); // Antar at brukerdata er i 'users'-kolleksjonen
-    const userDoc = await getDoc(userRef);
-    return userDoc.data();
   };
 
   const getLastMessage = async (chatId) => {
@@ -80,6 +87,7 @@ export default function ChatChannels() {
             timestamp: new Date(
               lastMessage.sentAt.seconds * 1000
             ).toLocaleString(),
+            adStatus: adInfo.status,
             userName: `${adInfo.user.firstName} ${adInfo.user.lastName}`, // Sett brukernavnet
             userProfilePic: adInfo.user.profileImageUrl, // Sett profilbildet
           };
@@ -91,13 +99,21 @@ export default function ChatChannels() {
   };
 
   useEffect(() => {
-    fetchConversations().then(setConversations);
+    fetchConversations().then((updatedConversations) => {
+      const { activeConversations, otherConversations } =
+        categorizeConversations(updatedConversations);
+      setActiveConversations(activeConversations);
+      setOtherConversations(otherConversations);
+    });
   }, []);
 
   useEffect(() => {
     const intervalId = setInterval(async () => {
       const updatedConversations = await fetchConversations();
-      setConversations(updatedConversations);
+      const { activeConversations, otherConversations } =
+        categorizeConversations(updatedConversations);
+      setActiveConversations(activeConversations);
+      setOtherConversations(otherConversations);
     }, 10000);
 
     return () => clearInterval(intervalId);
@@ -125,7 +141,9 @@ export default function ChatChannels() {
           <Text style={{ fontSize: 16, fontWeight: "600" }}>
             {item.userName}
           </Text>
-          <Text>{item.lastMessage}</Text>
+          <Text style={{ fontSize: 14, fontWeight: 400 }}>
+            {item.lastMessage}
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -151,11 +169,27 @@ export default function ChatChannels() {
         <SearchBar placeholder={"Søk etter annonser eller samtaler"} />
       </View>
       <View style={containerStyles.defaultContainer}>
-        <FlatList
-          data={conversations}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.chatId}
-        />
+        {activeConversations.length > 0 && (
+          <>
+            <Text style={{ marginBottom: 12 }}>Aktive Samtaler</Text>
+            <FlatList
+              data={activeConversations}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.chatId}
+            />
+          </>
+        )}
+
+        {otherConversations.length > 0 && (
+          <>
+            <Text style={{ marginBottom: 12 }}>Alle Samtaler</Text>
+            <FlatList
+              data={otherConversations}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.chatId}
+            />
+          </>
+        )}
       </View>
     </View>
   );
