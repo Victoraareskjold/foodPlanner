@@ -76,7 +76,7 @@ const AllMessages = () => {
           alignItems: "center",
         }}
       >
-        <Text style={fonts.header}>Din side</Text>
+        <Text style={fonts.header}>Dine meldinger</Text>
       </View>
       <View style={styles.container}>
         <FlatList

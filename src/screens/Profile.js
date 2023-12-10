@@ -100,7 +100,7 @@ const Profile = () => {
           alignItems: "center",
         }}
       >
-        <Text style={fonts.header}>Din side</Text>
+        <Text style={fonts.header}>Din profil</Text>
       </View>
 
       {/* Name, profile etc. */}

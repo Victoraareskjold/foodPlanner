@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   SafeAreaView,
+  Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { auth, db } from "../../firebase";
@@ -24,6 +25,7 @@ import {
 import fonts from "../../styles/fonts";
 import images from "../../styles/images";
 import containerStyles from "../../styles/containerStyles";
+import SearchBar from "../components/SearchBar";
 
 export default function ChatChannels() {
   const [conversations, setConversations] = useState([]);
@@ -34,6 +36,12 @@ export default function ChatChannels() {
     const q = query(chatsRef, where("participants", "array-contains", userId));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  };
+
+  const getUserInfo = async (userId) => {
+    const userRef = doc(db, "users", userId); // Antar at brukerdata er i 'users'-kolleksjonen
+    const userDoc = await getDoc(userRef);
+    return userDoc.data();
   };
 
   const getLastMessage = async (chatId) => {
@@ -60,20 +68,24 @@ export default function ChatChannels() {
       await Promise.all(
         userChats.map(async (chat) => {
           const lastMessage = await getLastMessage(chat.id);
-          if (!lastMessage) return null; // Hopper over chater uten meldinger
+          if (!lastMessage) return null;
 
           const adInfo = await getAdInfo(chat.adId);
+          if (!adInfo || !adInfo.user) return null; // Sjekk at adInfo og adInfo.user eksisterer
+
+          // Bruk informasjonen direkte fra adInfo.user
           return {
             chatId: chat.id,
             lastMessage: lastMessage.text,
             timestamp: new Date(
               lastMessage.sentAt.seconds * 1000
             ).toLocaleString(),
-            adTitle: adInfo ? adInfo.overskrift : "Annonse",
+            userName: `${adInfo.user.firstName} ${adInfo.user.lastName}`, // Sett brukernavnet
+            userProfilePic: adInfo.user.profileImageUrl, // Sett profilbildet
           };
         })
       )
-    ).filter(Boolean); // Filtrer ut null-verdier
+    ).filter(Boolean);
 
     return updatedConversations;
   };
@@ -93,7 +105,7 @@ export default function ChatChannels() {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
-      style={{ backgroundColor: "grey", marginBottom: 12 }}
+      style={{ marginBottom: 12 }}
       onPress={() => {
         // Når du navigerer til ChatScreen
         navigation.navigate("ChatScreen", {
@@ -102,9 +114,20 @@ export default function ChatChannels() {
         });
       }}
     >
-      <Text>{item.adTitle}</Text>
-      <Text>{item.lastMessage}</Text>
-      <Text>{item.timestamp}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        {item.userProfilePic && (
+          <Image
+            source={{ uri: item.userProfilePic }}
+            style={{ width: 48, height: 48, borderRadius: 50, marginRight: 12 }}
+          />
+        )}
+        <View>
+          <Text style={{ fontSize: 16, fontWeight: "600" }}>
+            {item.userName}
+          </Text>
+          <Text>{item.lastMessage}</Text>
+        </View>
+      </View>
     </TouchableOpacity>
   );
 
@@ -122,13 +145,18 @@ export default function ChatChannels() {
           alignItems: "center",
         }}
       >
-        <Text style={fonts.header}>Din side</Text>
+        <Text style={fonts.header}>Dine meldinger</Text>
       </View>
-      <FlatList
-        data={conversations}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.chatId}
-      />
+      <View style={containerStyles.defaultContainer}>
+        <SearchBar placeholder={"Søk etter annonser eller samtaler"} />
+      </View>
+      <View style={containerStyles.defaultContainer}>
+        <FlatList
+          data={conversations}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.chatId}
+        />
+      </View>
     </View>
   );
 }

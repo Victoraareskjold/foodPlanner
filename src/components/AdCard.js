@@ -76,8 +76,8 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: 140,
-    borderRadius: 5,
-    marginBottom: 16,
+    borderRadius: 0,
+    marginBottom: 0,
   },
   icon: {
     height: 24,
@@ -90,6 +90,7 @@ const styles = StyleSheet.create({
     marginRight: 20,
     borderWidth: 1,
     borderColor: colors.lightGrey,
+    overflow: "hidden",
   },
   textContainer: {
     padding: 0,
