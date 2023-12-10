@@ -21,6 +21,7 @@ import {
 import colors from "../../styles/colors";
 import AgreementRequestCard from "../components/AgreementRequestCard";
 import WorkStartRequestCard from "../components/WorkStartRequestCard";
+import ChatAdCard from "../components/ChatAdCard";
 
 const ChatScreen = ({ route, navigation }) => {
   const [messages, setMessages] = useState([]);
@@ -34,9 +35,32 @@ const ChatScreen = ({ route, navigation }) => {
   const [workTimer, setWorkTimer] = useState(0); // Holder styr på tiden for stoppeklokken
   const [workInterval, setWorkInterval] = useState(null);
 
-  useLayoutEffect(() => {
-    navigation.setOptions({ headerTitle: adTitle || "Chat" });
-  }, [navigation, adTitle]);
+  useEffect(() => {
+    const fetchOtherParticipantInfo = async () => {
+      const chatDocRef = doc(db, "chats", chatId);
+      const chatDocSnap = await getDoc(chatDocRef);
+
+      if (chatDocSnap.exists()) {
+        const participants = chatDocSnap.data().participants;
+        const otherUserId = participants.find(
+          (uid) => uid !== auth.currentUser.uid
+        );
+
+        const userDocRef = doc(db, "users", otherUserId);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          const otherUserName = `${userDocSnap.data().firstName} ${
+            userDocSnap.data().lastName
+          }`;
+          navigation.setOptions({
+            headerTitle: otherUserName,
+          });
+        }
+      }
+    };
+
+    fetchOtherParticipantInfo();
+  }, [chatId, navigation]);
 
   useEffect(() => {
     const fetchAdData = async () => {
@@ -420,6 +444,7 @@ const ChatScreen = ({ route, navigation }) => {
 
   return (
     <View style={{ backgroundColor: "white", flex: 1 }}>
+      <ChatAdCard adData={adData} />
       {!isAgreementRequested && (
         <TouchableOpacity onPress={sendAgreementRequest}>
           <Text>Inngå Avtale</Text>
