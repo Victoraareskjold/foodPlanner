@@ -315,6 +315,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     Width: "100%",
     justifyContent: "space-between",
-    gap: 20,
+    gap: 12,
   },
 });

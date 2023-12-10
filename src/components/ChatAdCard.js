@@ -10,9 +10,9 @@ const ChatAdCard = ({ adData }) => {
   if (!adData) return null;
 
   return (
-    <View style={styles.adCard}>
+    <TouchableOpacity style={styles.adCard}>
       <Text style={styles.adTitle}>{adData.overskrift}</Text>
-    </View>
+    </TouchableOpacity>
   );
 };
 

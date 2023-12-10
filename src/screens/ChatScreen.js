@@ -29,6 +29,7 @@ const ChatScreen = ({ route, navigation }) => {
   const [isAgreementRequested, setIsAgreementRequested] = useState(false);
   const [isAgreementConfirmed, setIsAgreementConfirmed] = useState(false);
   const { chatId, adTitle } = route.params;
+  const [otherUserId, setOtherUserId] = useState(null);
 
   const [isWorkStarted, setIsWorkStarted] = useState(false);
   const [showStopwatch, setShowStopwatch] = useState(false);
@@ -61,6 +62,23 @@ const ChatScreen = ({ route, navigation }) => {
 
     fetchOtherParticipantInfo();
   }, [chatId, navigation]);
+
+  useEffect(() => {
+    const fetchOtherParticipantId = async () => {
+      const chatDocRef = doc(db, "chats", chatId);
+      const chatDocSnap = await getDoc(chatDocRef);
+
+      if (chatDocSnap.exists()) {
+        const participants = chatDocSnap.data().participants;
+        const otherUserId = participants.find(
+          (uid) => uid !== auth.currentUser.uid
+        );
+        setOtherUserId(otherUserId);
+      }
+    };
+
+    fetchOtherParticipantId();
+  }, [chatId]);
 
   useEffect(() => {
     const fetchAdData = async () => {
@@ -188,28 +206,17 @@ const ChatScreen = ({ route, navigation }) => {
     try {
       const chatDocRef = doc(db, "chats", chatId);
       const chatDocSnap = await getDoc(chatDocRef);
-      if (!chatDocSnap.exists()) {
-        console.error("No such document!");
-        return;
-      }
+      if (!chatDocSnap.exists()) return;
+
       const adId = chatDocSnap.data().adId;
       const adDocRef = doc(db, "annonser", adId);
       const adDocSnap = await getDoc(adDocRef);
-      if (!adDocSnap.exists()) {
-        console.error("No such document!");
-        return;
-      }
-      const responderDocRef = doc(db, "users", responderId);
-      const responderDocSnap = await getDoc(responderDocRef);
-      const responderName = responderDocSnap.exists()
-        ? `${responderDocSnap.data().firstName} ${
-            responderDocSnap.data().lastName
-          }`
-        : "Ukjent bruker";
+      if (!adDocSnap.exists()) return;
+
       if (response === "Ja") {
         await updateDoc(adDocRef, {
           status: "Pågår",
-          workerUid: responderId,
+          workerUid: otherUserId, // Setter den andre brukeren som arbeider
         });
 
         // Lagre starttidspunktet for arbeidet
@@ -458,6 +465,9 @@ const ChatScreen = ({ route, navigation }) => {
       )}
 
       <GiftedChat
+        timeFormat="HH:mm"
+        dateFormat="D. MMMM"
+        locale="nb-NO"
         messages={messages}
         onSend={(messages) => onSend(messages)}
         user={{
