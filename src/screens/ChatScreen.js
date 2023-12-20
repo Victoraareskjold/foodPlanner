@@ -527,7 +527,7 @@ const ChatScreen = ({ route, navigation }) => {
   }, [chatId]);
 
   return (
-    <View style={{ backgroundColor: "white", flex: 1 }}>
+    <View style={{ backgroundColor: "#F7F7F9", flex: 1 }}>
       <ChatAdCard adData={adData} />
       {!isAgreementRequested && (
         <TouchableOpacity onPress={sendAgreementRequest}>
