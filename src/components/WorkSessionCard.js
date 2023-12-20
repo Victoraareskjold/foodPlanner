@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import CheckIcon from "../../assets/SVGs/CheckIcon.js";
 import Pause from "../../assets/SVGs/Pause.js";
 import Play from "../../assets/SVGs/Play.js";
@@ -51,12 +51,24 @@ const WorkSessionCard = ({ onStart, onPause, onStop, elapsed, isRunning }) => {
     return <View style={{ flexDirection: "row" }}>{timeComponents}</View>;
   };
 
+  const handleStopWithConfirmation = () => {
+    Alert.alert(
+      "Bekreft fullføring",
+      "Er du sikker på at du vil fullføre?",
+      [
+        { text: "Avbryt", style: "cancel" },
+        { text: "Fullfør", onPress: onStop },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
     <View style={styles.workSessionCard}>
       <Text>Pågående arbeid:</Text>
-      <View style={{ alignItems: "center", gap: 12 }}>
+      <View style={{ alignItems: "center", gap: 20 }}>
         <Text>{formatTime(elapsed)}</Text>
-        <View style={{ flexDirection: "row", gap: 20 }}>
+        <View style={{ flexDirection: "row", gap: 32 }}>
           {!isRunning && (
             <TouchableOpacity
               style={[styles.btn, { backgroundColor: colors.lightBlue }]}
@@ -81,7 +93,7 @@ const WorkSessionCard = ({ onStart, onPause, onStop, elapsed, isRunning }) => {
 
           <TouchableOpacity
             style={[styles.btn, { backgroundColor: colors.lightGreen }]}
-            onPress={onStop}
+            onPress={handleStopWithConfirmation}
           >
             <CheckIcon />
             <Text style={[styles.btnText, { color: colors.green }]}>
@@ -101,7 +113,7 @@ const styles = StyleSheet.create({
     margin: 6,
     backgroundColor: colors.white,
     borderRadius: 10,
-    gap: 12,
+    gap: 32,
   },
   btn: {
     backgroundColor: colors.grey,

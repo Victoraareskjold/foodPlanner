@@ -578,13 +578,13 @@ const styles = StyleSheet.create({
     margin: 6,
   },
   confirmedRequestBox: {
-    backgroundColor: "#DFF0D8", // Eksempel på grønn bakgrunnsfarge
+    backgroundColor: colors.lightGreen, // Eksempel på grønn bakgrunnsfarge
     padding: 10,
     margin: 6,
     borderRadius: 10,
   },
   declinedRequestBox: {
-    backgroundColor: "#FFD6D6", // Rød bakgrunnsfarge
+    backgroundColor: colors.lightRed, // Rød bakgrunnsfarge
     padding: 10,
     margin: 6,
     borderRadius: 10,
