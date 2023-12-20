@@ -17,11 +17,13 @@ import {
   doc,
   getDoc,
   updateDoc,
+  setDoc,
 } from "firebase/firestore";
 import colors from "../../styles/colors";
 import AgreementRequestCard from "../components/AgreementRequestCard";
 import WorkStartRequestCard from "../components/WorkStartRequestCard";
 import ChatAdCard from "../components/ChatAdCard";
+import WorkSessionCard from "../components/WorkSessionCard";
 
 const ChatScreen = ({ route, navigation }) => {
   const [messages, setMessages] = useState([]);
@@ -30,11 +32,11 @@ const ChatScreen = ({ route, navigation }) => {
   const [isAgreementConfirmed, setIsAgreementConfirmed] = useState(false);
   const { chatId, adTitle } = route.params;
   const [otherUserId, setOtherUserId] = useState(null);
-
-  const [isWorkStarted, setIsWorkStarted] = useState(false);
-  const [showStopwatch, setShowStopwatch] = useState(false);
-  const [workTimer, setWorkTimer] = useState(0); // Holder styr på tiden for stoppeklokken
-  const [workInterval, setWorkInterval] = useState(null);
+  const [timer, setTimer] = useState({
+    running: false,
+    startTime: null,
+    elapsed: 0,
+  });
 
   useEffect(() => {
     const fetchOtherParticipantInfo = async () => {
@@ -161,23 +163,22 @@ const ChatScreen = ({ route, navigation }) => {
   };
 
   const sendStartWorkRequest = () => {
-    const existingRequest = messages.find(
-      (message) => message.customType === "workStartRequest"
+    const existingSession = messages.find(
+      (message) => message.customType === "workSession"
     );
-    if (existingRequest) {
-      alert("Det finnes allerede en arbeidsstartforespørsel.");
-      return;
+    if (!existingSession) {
+      const sessionMessage = {
+        _id: Math.random().toString(),
+        text: "",
+        createdAt: new Date(),
+        user: {
+          _id: auth.currentUser.uid,
+        },
+        customType: "workSession",
+        timerStatus: "stopped",
+      };
+      onSend([sessionMessage]);
     }
-    const requestMessage = {
-      _id: Math.random().toString(),
-      text: "Tilby å Starte Arbeid",
-      createdAt: new Date(),
-      user: {
-        _id: auth.currentUser.uid,
-      },
-      customType: "workStartRequest",
-    };
-    onSend([requestMessage]);
   };
 
   const sendAgreementRequest = async () => {
@@ -226,9 +227,6 @@ const ChatScreen = ({ route, navigation }) => {
           workStatus: "running",
         });
 
-        // Vis stoppeklokken
-        setShowStopwatch(true);
-
         await updateDoc(chatDocRef, {
           agreementConfirmed: true,
         });
@@ -256,70 +254,149 @@ const ChatScreen = ({ route, navigation }) => {
     }
   };
 
-  const startStopwatch = async () => {
-    await updateDoc(doc(db, "chats", chatId), {
-      workStartTime: new Date(),
-      workStatus: "running",
+  const sendTimerUpdateMessage = async (text, customType) => {
+    await addDoc(collection(db, `chats/${chatId}/messages`), {
+      text,
+      sentAt: new Date(),
+      sentBy: auth.currentUser.uid,
+      customType,
     });
   };
 
-  // Funksjon for å stoppe stoppeklokken
-  const stopStopwatch = async () => {
-    await updateDoc(doc(db, "chats", chatId), {
-      workStatus: "paused", // eller "stopped"
+  const startTimer = async () => {
+    const timerRef = doc(db, "chats", chatId, "timer", "current");
+    const now = new Date();
+    await setDoc(
+      timerRef,
+      {
+        running: true,
+        startTime: now,
+      },
+      { merge: true }
+    );
+    updateWorkSessionMessageInState("running");
+  };
+
+  const pauseTimer = async () => {
+    const timerRef = doc(db, "chats", chatId, "timer", "current");
+    const docSnap = await getDoc(timerRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data.startTime) {
+        const now = new Date();
+        const newElapsed =
+          Math.floor(
+            (now.getTime() - data.startTime.toDate().getTime()) / 1000
+          ) + (data.elapsed || 0);
+        await setDoc(
+          timerRef,
+          {
+            running: false,
+            elapsed: newElapsed,
+          },
+          { merge: true }
+        );
+      }
+    }
+    updateWorkSessionMessageInState("paused");
+  };
+
+  const stopTimer = async () => {
+    const timerRef = doc(db, "chats", chatId, "timer", "current");
+    await setDoc(
+      timerRef,
+      {
+        running: false,
+        startTime: null,
+        elapsed: 0,
+      },
+      { merge: true }
+    );
+    updateWorkSessionMessageInState("stopped");
+  };
+
+  const doesWorkSessionExist = () => {
+    return messages.some((message) => message.customType === "workSession");
+  };
+
+  const updateTimer = async () => {
+    const timerRef = doc(db, "chats", chatId, "timer", "current");
+    const docSnap = await getDoc(timerRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data.running && data.startTime) {
+        const now = new Date();
+        const newElapsed =
+          Math.floor(
+            (now.getTime() - data.startTime.toDate().getTime()) / 1000
+          ) + (data.elapsed || 0);
+        setTimer({ ...timer, elapsed: newElapsed });
+      }
+    }
+  };
+
+  const updateWorkSessionMessageInState = (newStatus) => {
+    setMessages((prevMessages) => {
+      return prevMessages.map((message) => {
+        if (message.customType === "workSession") {
+          return { ...message, timerStatus: newStatus };
+        }
+        return message;
+      });
     });
   };
 
   useEffect(() => {
-    const chatDocRef = doc(db, "chats", chatId);
+    let interval;
+    if (timer.running) {
+      interval = setInterval(updateTimer, 1000);
+    } else if (interval) {
+      clearInterval(interval);
+    }
 
-    const unsubscribe = onSnapshot(chatDocRef, (doc) => {
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [timer.running]);
+
+  useEffect(() => {
+    const timerRef = doc(db, "chats", chatId, "timer", "current");
+
+    const unsubscribe = onSnapshot(timerRef, (doc) => {
       if (doc.exists()) {
         const data = doc.data();
-        setIsAgreementRequested(data.agreementRequested || false);
-        setIsAgreementConfirmed(data.agreementConfirmed || false);
-
-        if (data.workStartTime) {
-          const startTime = data.workStartTime.toDate();
-          const currentTime = new Date();
-          const elapsedMillis = currentTime.getTime() - startTime.getTime();
-          const elapsedSeconds = Math.floor(elapsedMillis / 1000);
-
-          setWorkTimer(elapsedSeconds);
-
-          if (data.workStatus === "running" && !workInterval) {
-            setWorkInterval(
-              setInterval(() => {
-                setWorkTimer((prevTime) => prevTime + 1);
-              }, 1000)
-            );
-          } else if (data.workStatus !== "running" && workInterval) {
-            clearInterval(workInterval);
-            setWorkInterval(null);
-          }
-        }
+        setTimer({
+          running: data.running,
+          startTime: data.startTime?.toDate(),
+          elapsed: data.elapsed || 0,
+        });
       }
     });
 
-    return () => {
-      unsubscribe();
-      if (workInterval) clearInterval(workInterval);
-    };
+    return unsubscribe;
   }, [chatId]);
-
-  const formatTime = (milliseconds) => {
-    let totalSeconds = Math.floor(milliseconds / 1000);
-    let hours = Math.floor(totalSeconds / 3600);
-    let minutes = Math.floor((totalSeconds % 3600) / 60);
-    let seconds = totalSeconds % 60;
-
-    return `${hours.toString().padStart(2, "0")}:${minutes
-      .toString()
-      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-  };
 
   const renderMessage = (props) => {
     const { currentMessage } = props;
+
+    // I ChatScreen-komponenten, inne i renderMessage-funksjonen:
+    if (currentMessage.customType === "workSession") {
+      return (
+        <WorkSessionCard
+          currentMessage={currentMessage}
+          onStart={() => startTimer()}
+          onPause={() => pauseTimer()}
+          onStop={() => stopTimer()}
+          elapsed={timer.elapsed}
+          isRunning={timer.running}
+        />
+      );
+    }
+
     const isSender = currentMessage.user._id === auth.currentUser.uid;
 
     // Bestemmer stilen basert på om brukeren er senderen
@@ -327,7 +404,7 @@ const ChatScreen = ({ route, navigation }) => {
       ? styles.requestBoxSender
       : styles.requestBoxReceiver;
 
-    if (
+    /* if (
       currentMessage.customType === "workStartRequest" &&
       isAgreementConfirmed
     ) {
@@ -342,7 +419,7 @@ const ChatScreen = ({ route, navigation }) => {
           </TouchableOpacity>
         </View>
       );
-    }
+    } */
 
     switch (currentMessage.customType) {
       case "workStartRequest":
@@ -458,8 +535,17 @@ const ChatScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       )}
 
-      {isAgreementConfirmed && (
-        <TouchableOpacity onPress={sendStartWorkRequest}>
+      {!isAgreementRequested && (
+        <TouchableOpacity onPress={sendAgreementRequest}>
+          <Text>Inngå Avtale</Text>
+        </TouchableOpacity>
+      )}
+
+      {!doesWorkSessionExist() && (
+        <TouchableOpacity
+          onPress={sendStartWorkRequest}
+          style={styles.startWorkButton}
+        >
           <Text>Start Arbeid</Text>
         </TouchableOpacity>
       )}
@@ -470,9 +556,7 @@ const ChatScreen = ({ route, navigation }) => {
         locale="nb-NO"
         messages={messages}
         onSend={(messages) => onSend(messages)}
-        user={{
-          _id: auth.currentUser.uid,
-        }}
+        user={{ _id: auth.currentUser.uid }}
         renderMessage={renderMessage}
       />
     </View>
@@ -485,24 +569,24 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     paddingVertical: 20,
     paddingHorizontal: 12,
-    marginBottom: 12,
+    margin: 6,
   },
   requestBoxReceiver: {
     backgroundColor: colors.primary,
     paddingVertical: 20,
     paddingHorizontal: 12,
-    marginBottom: 12,
+    margin: 6,
   },
   confirmedRequestBox: {
     backgroundColor: "#DFF0D8", // Eksempel på grønn bakgrunnsfarge
     padding: 10,
-    margin: 5,
+    margin: 6,
     borderRadius: 10,
   },
   declinedRequestBox: {
     backgroundColor: "#FFD6D6", // Rød bakgrunnsfarge
     padding: 10,
-    margin: 5,
+    margin: 6,
     borderRadius: 10,
   },
 });
