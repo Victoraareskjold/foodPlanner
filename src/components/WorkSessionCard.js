@@ -110,7 +110,8 @@ const styles = StyleSheet.create({
   workSessionCard: {
     paddingVertical: 20,
     paddingHorizontal: 20,
-    margin: 6,
+    marginHorizontal: 32,
+    marginBottom: 12,
     backgroundColor: colors.white,
     borderRadius: 10,
     gap: 32,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect } from "react";
-import { GiftedChat, Message } from "react-native-gifted-chat";
+import { GiftedChat, Message, InputToolbar } from "react-native-gifted-chat";
 import {
   View,
   Text,
@@ -37,6 +37,8 @@ const ChatScreen = ({ route, navigation }) => {
     startTime: null,
     elapsed: 0,
   });
+  const [isUserAdCreator, setIsUserAdCreator] = useState(false);
+  const [showAgreementCard, setShowAgreementCard] = useState(true);
 
   useEffect(() => {
     const fetchOtherParticipantInfo = async () => {
@@ -92,7 +94,9 @@ const ChatScreen = ({ route, navigation }) => {
           const adDocRef = doc(db, "annonser", adId);
           const adDocSnap = await getDoc(adDocRef);
           if (adDocSnap.exists()) {
-            setAdData(adDocSnap.data());
+            const ad = adDocSnap.data();
+            setAdData(ad);
+            setIsUserAdCreator(ad.uid === auth.currentUser.uid); // Sjekk om brukeren er annonsens oppretter
           }
         }
       } catch (error) {
@@ -235,6 +239,18 @@ const ChatScreen = ({ route, navigation }) => {
         await updateDoc(messageDocRef, {
           customType: "agreementConfirmed",
         });
+        const responderDocRef = doc(db, "users", responderId);
+        const responderDocSnap = await getDoc(responderDocRef);
+
+        let responderName = "";
+        if (responderDocSnap.exists()) {
+          const responderData = responderDocSnap.data();
+          responderName = `${responderData.firstName} ${responderData.lastName}`;
+        } else {
+          console.error("Kunne ikke finne brukerdata for responderId");
+          return; // Håndter feilen på passende måte
+        }
+
         const updatedMessages = messages.map((msg) => {
           if (msg._id === messageId) {
             return {
@@ -380,10 +396,68 @@ const ChatScreen = ({ route, navigation }) => {
     return unsubscribe;
   }, [chatId]);
 
+  const CustomButtons = () => (
+    <View>
+      {!isUserAdCreator && !isAgreementRequested && (
+        <TouchableOpacity
+          onPress={sendAgreementRequest}
+          style={styles.requestBtn}
+        >
+          <Text>Inngå Avtale</Text>
+        </TouchableOpacity>
+      )}
+
+      {!isUserAdCreator && !doesWorkSessionExist() && isAgreementConfirmed && (
+        <TouchableOpacity
+          onPress={sendStartWorkRequest}
+          style={styles.requestBtn}
+        >
+          <Text>Start Arbeid</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
+  const appendSpecialCard = (messages) => {
+    if (showAgreementCard) {
+      const specialCard = {
+        _id: "special-card",
+        text: "Er du klar for å inngå en avtale?",
+        createdAt: new Date(),
+        user: { _id: "system" },
+        system: true,
+      };
+      return [...messages, specialCard];
+    }
+    return messages;
+  };
+
+  const onSendAgreement = () => {
+    const agreementMessage = {
+      _id: Math.random().toString(),
+      text: "Avtaleforespørsel sendt",
+      createdAt: new Date(),
+      user: { _id: auth.currentUser.uid },
+      customType: "agreementRequest",
+    };
+    setShowAgreementCard(false); // Skjul kortet
+    onSend([agreementMessage]);
+  };
+
   const renderMessage = (props) => {
     const { currentMessage } = props;
 
-    // I ChatScreen-komponenten, inne i renderMessage-funksjonen:
+    if (props.currentMessage._id === "special-card") {
+      return (
+        <TouchableOpacity onPress={onSendAgreement}>
+          <View style={styles.specialCard}>
+            <Text>Er du klar for å inngå en avtale?</Text>
+            <Text style={styles.buttonText}>Inngå Avtale</Text>
+          </View>
+        </TouchableOpacity>
+      );
+    }
+
     if (currentMessage.customType === "workSession") {
       return (
         <WorkSessionCard
@@ -399,27 +473,9 @@ const ChatScreen = ({ route, navigation }) => {
 
     const isSender = currentMessage.user._id === auth.currentUser.uid;
 
-    // Bestemmer stilen basert på om brukeren er senderen
     const requestBoxStyle = isSender
       ? styles.requestBoxSender
       : styles.requestBoxReceiver;
-
-    /* if (
-      currentMessage.customType === "workStartRequest" &&
-      isAgreementConfirmed
-    ) {
-      return (
-        <View style={{ padding: 10 }}>
-          <Text>Arbeidstid: {formatTime(workTimer * 1000)}</Text>
-          <TouchableOpacity onPress={startStopwatch}>
-            <Text>Start</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={stopStopwatch}>
-            <Text>Stopp</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    } */
 
     switch (currentMessage.customType) {
       case "workStartRequest":
@@ -529,27 +585,7 @@ const ChatScreen = ({ route, navigation }) => {
   return (
     <View style={{ backgroundColor: "#F7F7F9", flex: 1 }}>
       <ChatAdCard adData={adData} />
-      {!isAgreementRequested && (
-        <TouchableOpacity onPress={sendAgreementRequest}>
-          <Text>Inngå Avtale</Text>
-        </TouchableOpacity>
-      )}
-
-      {!isAgreementRequested && (
-        <TouchableOpacity onPress={sendAgreementRequest}>
-          <Text>Inngå Avtale</Text>
-        </TouchableOpacity>
-      )}
-
-      {!doesWorkSessionExist() && (
-        <TouchableOpacity
-          onPress={sendStartWorkRequest}
-          style={styles.startWorkButton}
-        >
-          <Text>Start Arbeid</Text>
-        </TouchableOpacity>
-      )}
-
+      <CustomButtons />
       <GiftedChat
         timeFormat="HH:mm"
         dateFormat="D. MMMM"
@@ -558,6 +594,9 @@ const ChatScreen = ({ route, navigation }) => {
         onSend={(messages) => onSend(messages)}
         user={{ _id: auth.currentUser.uid }}
         renderMessage={renderMessage}
+        renderInputToolbar={(props) => (
+          <InputToolbar {...props} containerStyle={{ marginBottom: 6 }} />
+        )}
       />
     </View>
   );
@@ -569,25 +608,37 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     paddingVertical: 20,
     paddingHorizontal: 12,
-    margin: 6,
+    marginHorizontal: 32,
+    marginVertical: 12,
   },
   requestBoxReceiver: {
     backgroundColor: colors.primary,
     paddingVertical: 20,
     paddingHorizontal: 12,
-    margin: 6,
+    marginHorizontal: 32,
+    marginBottom: 12,
   },
   confirmedRequestBox: {
     backgroundColor: colors.lightGreen, // Eksempel på grønn bakgrunnsfarge
     padding: 10,
-    margin: 6,
+    marginHorizontal: 32,
+    marginBottom: 12,
     borderRadius: 10,
   },
   declinedRequestBox: {
     backgroundColor: colors.lightRed, // Rød bakgrunnsfarge
     padding: 10,
-    margin: 6,
+    marginHorizontal: 32,
+    marginBottom: 12,
     borderRadius: 10,
+  },
+  requestBtn: {
+    backgroundColor: colors.primary,
+    marginHorizontal: 32,
+    marginBottom: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 5,
   },
 });
 
