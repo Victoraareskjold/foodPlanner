@@ -2,7 +2,7 @@ import React from "react";
 import Svg, { Path, G, ClipPath, Rect } from "react-native-svg";
 
 const Cancel = (props) => (
-  <svg
+  <Svg
     width="16"
     height="16"
     viewBox="0 0 16 16"
@@ -15,7 +15,7 @@ const Cancel = (props) => (
       stroke-linecap="round"
       stroke-linejoin="round"
     />
-  </svg>
+  </Svg>
 );
 
 export default Cancel;

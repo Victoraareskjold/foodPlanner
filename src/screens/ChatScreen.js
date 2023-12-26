@@ -407,7 +407,7 @@ const ChatScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       )}
 
-      {!isUserAdCreator && !doesWorkSessionExist() && isAgreementConfirmed && (
+      {!isUserAdCreator && isAgreementConfirmed && !doesWorkSessionExist() && (
         <TouchableOpacity
           onPress={sendStartWorkRequest}
           style={styles.requestBtn}
@@ -467,6 +467,7 @@ const ChatScreen = ({ route, navigation }) => {
           onStop={() => stopTimer()}
           elapsed={timer.elapsed}
           isRunning={timer.running}
+          isUserAdCreator={isUserAdCreator}
         />
       );
     }
@@ -583,7 +584,7 @@ const ChatScreen = ({ route, navigation }) => {
   }, [chatId]);
 
   return (
-    <View style={{ backgroundColor: "#F7F7F9", flex: 1 }}>
+    <View style={{ backgroundColor: "#F7F7F9", flex: 1, paddingBottom: 20 }}>
       <ChatAdCard adData={adData} />
       <CustomButtons />
       <GiftedChat
@@ -594,8 +595,12 @@ const ChatScreen = ({ route, navigation }) => {
         onSend={(messages) => onSend(messages)}
         user={{ _id: auth.currentUser.uid }}
         renderMessage={renderMessage}
+        placeholder={"Skriv her..."}
         renderInputToolbar={(props) => (
-          <InputToolbar {...props} containerStyle={{ marginBottom: 6 }} />
+          <InputToolbar
+            {...props}
+            containerStyle={{ marginBottom: 0 /* paddingBottom: 32  */ }}
+          />
         )}
       />
     </View>
@@ -619,14 +624,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   confirmedRequestBox: {
-    backgroundColor: colors.lightGreen, // Eksempel på grønn bakgrunnsfarge
+    backgroundColor: colors.lightGreen,
     padding: 10,
     marginHorizontal: 32,
     marginBottom: 12,
     borderRadius: 10,
   },
   declinedRequestBox: {
-    backgroundColor: colors.lightRed, // Rød bakgrunnsfarge
+    backgroundColor: colors.lightRed,
     padding: 10,
     marginHorizontal: 32,
     marginBottom: 12,

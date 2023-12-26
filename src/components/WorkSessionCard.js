@@ -3,9 +3,17 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import CheckIcon from "../../assets/SVGs/CheckIcon.js";
 import Pause from "../../assets/SVGs/Pause.js";
 import Play from "../../assets/SVGs/Play.js";
+import Warning from "../../assets/SVGs/Warning.js";
 import colors from "../../styles/colors";
 
-const WorkSessionCard = ({ onStart, onPause, onStop, elapsed, isRunning }) => {
+const WorkSessionCard = ({
+  onStart,
+  onPause,
+  onStop,
+  elapsed,
+  isRunning,
+  isUserAdCreator,
+}) => {
   const formatTime = (seconds) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -68,39 +76,55 @@ const WorkSessionCard = ({ onStart, onPause, onStop, elapsed, isRunning }) => {
       <Text>Pågående arbeid:</Text>
       <View style={{ alignItems: "center", gap: 20 }}>
         <Text>{formatTime(elapsed)}</Text>
-        <View style={{ flexDirection: "row", gap: 32 }}>
-          {!isRunning && (
+        {!isUserAdCreator ? (
+          <View style={{ flexDirection: "row", gap: 32 }}>
+            {!isRunning && (
+              <TouchableOpacity
+                style={[styles.btn, { backgroundColor: colors.lightBlue }]}
+                onPress={onStart}
+              >
+                <Play />
+                <Text style={[styles.btnText, { color: colors.blue }]}>
+                  Start
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {isRunning && (
+              <TouchableOpacity
+                style={[styles.btn, { backgroundColor: colors.lightRed }]}
+                onPress={onPause}
+              >
+                <Pause />
+                <Text style={[styles.btnText, { color: colors.red }]}>
+                  Pause
+                </Text>
+              </TouchableOpacity>
+            )}
+
             <TouchableOpacity
-              style={[styles.btn, { backgroundColor: colors.lightBlue }]}
-              onPress={onStart}
+              style={[styles.btn, { backgroundColor: colors.lightGreen }]}
+              onPress={handleStopWithConfirmation}
             >
-              <Play />
-              <Text style={[styles.btnText, { color: colors.blue }]}>
-                Start
+              <CheckIcon />
+              <Text style={[styles.btnText, { color: colors.green }]}>
+                Fullfør
               </Text>
             </TouchableOpacity>
-          )}
-
-          {isRunning && (
-            <TouchableOpacity
-              style={[styles.btn, { backgroundColor: colors.lightRed }]}
-              onPress={onPause}
-            >
-              <Pause />
-              <Text style={[styles.btnText, { color: colors.red }]}>Pause</Text>
-            </TouchableOpacity>
-          )}
-
+          </View>
+        ) : (
           <TouchableOpacity
-            style={[styles.btn, { backgroundColor: colors.lightGreen }]}
-            onPress={handleStopWithConfirmation}
+            style={[styles.btn, { backgroundColor: colors.lightRed }]}
+            onPress={() => {
+              // Implementer funksjonalitet for å rapportere et problem
+            }}
           >
-            <CheckIcon />
-            <Text style={[styles.btnText, { color: colors.green }]}>
-              Fullfør
+            <Warning />
+            <Text style={[styles.btnText, { color: colors.red }]}>
+              Rapporter et problem
             </Text>
           </TouchableOpacity>
-        </View>
+        )}
       </View>
     </View>
   );
