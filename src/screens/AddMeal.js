@@ -46,19 +46,60 @@ const generateWeekDates = () => {
   return dates;
 };
 
-export default function WeeklyMenu() {
-  const navigation = useNavigation();
+export default function AddMeal({ route, navigation }) {
+  const { currentDay } = route.params;
+
   const [recipeData, setRecipeData] = useState([]);
   const weekDates = generateWeekDates();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [currentDay, setCurrentDay] = useState(null);
   const [familyId, setFamilyId] = useState(null);
 
+  const handleSaveRecipe = async (recipe) => {
+    console.log("Lagrer oppskrift", recipe.title); // Logging
+    try {
+      await saveRecipeForDay(currentDay, recipe);
+      console.log("Oppskrift lagret suksessfullt");
+      alert("Oppskrift lagret for " + currentDay); // Behold denne alerten
+      navigation.goBack();
+    } catch (error) {
+      console.error("Feil ved lagring av oppskrift", error);
+      alert("Kunne ikke lagre oppskriften. Prøv igjen.");
+    }
+  };
+
+  const saveRecipeForDay = async (day, recipe) => {
+    if (!familyId) {
+      console.log("Family ID er ikke satt");
+      return;
+    }
+
+    const dayDocRef = doc(
+      db,
+      "families",
+      familyId,
+      "weekMenu",
+      day.replaceAll("/", "-")
+    );
+
+    const dayData = {
+      date: day,
+      recipeId: recipe.id,
+      recipeTitle: recipe.title,
+    };
+
+    try {
+      await setDoc(dayDocRef, dayData);
+      console.log("Oppskrift lagret for dagen!"); // Behold logging, men fjern alert her
+    } catch (error) {
+      console.error("Feil ved lagring av oppskrift", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchFamilyId = async () => {
       if (auth.currentUser) {
-        const userDocRef = doc(db, "users", auth.currentUser.uid);
         try {
+          const userDocRef = doc(db, "users", auth.currentUser.uid);
           const userDocSnap = await getDoc(userDocRef);
           if (userDocSnap.exists()) {
             const userData = userDocSnap.data();
@@ -72,8 +113,8 @@ export default function WeeklyMenu() {
       }
     };
 
-    fetchUserData();
-  }, []);
+    fetchFamilyId();
+  }, []); // Denne useEffect kjører kun ved montering
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -84,10 +125,11 @@ export default function WeeklyMenu() {
         );
         try {
           const snapshot = await getDocs(familyRecipesRef);
-          const fetchedRecipes = [];
-          snapshot.forEach((doc) =>
-            fetchedRecipes.push({ id: doc.id, ...doc.data() })
-          );
+          const fetchedRecipes = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          console.log(fetchedRecipes);
           setRecipeData(fetchedRecipes);
         } catch (error) {
           console.error("Feil ved henting av oppskrifter", error);
@@ -97,64 +139,6 @@ export default function WeeklyMenu() {
 
     fetchRecipes();
   }, [familyId]);
-
-  const fetchFamilyMembers = async (familyId) => {
-    const familyDocRef = doc(db, "families", familyId);
-    const familyDocSnap = await getDoc(familyDocRef);
-
-    if (familyDocSnap.exists()) {
-      const familyData = familyDocSnap.data();
-      return familyData.members; // Returnerer array av medlems-IDs
-    } else {
-      console.log("Familie ikke funnet");
-      return [];
-    }
-  };
-
-  useEffect(() => {
-    const fetchAndSetRecipes = async () => {
-      const members = await fetchFamilyMembers(familyId);
-      const recipes = [];
-
-      for (const memberId of members) {
-        const memberRecipesRef = collection(db, "recipes"); // Anta at det er en måte å filtrere basert på memberId
-        const q = query(memberRecipesRef, where("userId", "==", memberId)); // Dette forutsetter at oppskrifter har en `userId`
-
-        const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc) => {
-          recipes.push({ id: doc.id, ...doc.data() });
-        });
-      }
-
-      setRecipeData(recipes);
-    };
-
-    if (familyId) {
-      fetchAndSetRecipes();
-    }
-  }, [familyId]);
-
-  const saveRecipeForDay = async (day, recipe) => {
-    const dayDocRef = doc(db, "families", familyId, "weekMenu", day);
-
-    const dayData = {
-      date: day,
-      recipeId: recipe.id,
-      recipeTitle: recipe.title,
-    };
-
-    try {
-      await setDoc(dayDocRef, dayData);
-      console.log("Oppskrift lagret for dagen!");
-    } catch (error) {
-      console.error("Feil ved lagring av oppskrift for dagen", error);
-    }
-  };
-
-  const selectRecipeForDay = (recipe, day) => {
-    saveRecipeForDay(day, recipe);
-    setIsModalVisible(false);
-  };
 
   return (
     <View style={styles.container}>
@@ -181,20 +165,19 @@ export default function WeeklyMenu() {
         </View>
       </View>
 
-      <View style={[containerStyles.defaultContainer, { flex: 1, gap: 12 }]}>
-        {weekDates.map((date, index) => (
-          <View key={index} style={styles.dayContainer}>
-            <Text style={styles.dayText}>{date}</Text>
+      <View style={styles.container}>
+        <FlatList
+          data={recipeData}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
             <TouchableOpacity
-              style={styles.addButton}
-              onPress={() =>
-                navigation.navigate("AddMeal", { currentDay: date })
-              }
+              style={styles.recipeItem}
+              onPress={() => handleSaveRecipe(item)}
             >
-              <Text style={styles.addButtonText}>Legg til Oppskrift</Text>
+              <Text style={styles.recipeText}>{item.title}</Text>
             </TouchableOpacity>
-          </View>
-        ))}
+          )}
+        />
       </View>
     </View>
   );

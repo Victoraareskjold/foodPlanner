@@ -25,6 +25,7 @@ import SetupName from "../screens/onboarding/SetupName";
 import SignUp from "../screens/onboarding/SignUp";
 
 import WeeklyMenu from "../screens/WeeklyMenu";
+import AddMeal from "../screens/AddMeal";
 
 import Profile from "../screens/Profile";
 
@@ -47,7 +48,9 @@ function TabGroup() {
             iconName = focused ? "receipt" : "receipt-outline";
           } else if (route.name === "ShoppingListStackGroup") {
             iconName = focused ? "cart" : "cart-outline";
-          } else if (route.name === "WeeklyMenu") {
+          } else if (route.name === "WeeklyMenuStackGroup") {
+            iconName = focused ? "person" : "person-outline";
+          } else if (route.name === "ProfileStackGroup") {
             iconName = focused ? "person" : "person-outline";
           }
 
@@ -67,13 +70,18 @@ function TabGroup() {
         options={{ tabBarLabel: "Oppskrifter" }}
       />
       <Tab.Screen
-        name="WeeklyMenu"
-        component={WeeklyMenu}
+        name="WeeklyMenuStackGroup"
+        component={WeeklyMenuStackGroup}
         options={{ tabBarLabel: "Ukes meny" }}
       />
       <Tab.Screen
         name="ShoppingListStackGroup"
         component={ShoppingListStackGroup}
+        options={{ tabBarLabel: "Handleliste" }}
+      />
+      <Tab.Screen
+        name="ProfileStackGroup"
+        component={ProfileStackGroup}
         options={{ tabBarLabel: "Handleliste" }}
       />
     </Tab.Navigator>
@@ -170,6 +178,39 @@ function RecipeStackGroup() {
         options={{ headerShown: true, headerTitle: "Kategorivisning" }}
       />
     </RecipeStack.Navigator>
+  );
+}
+
+const WeeklyMenuStack = createNativeStackNavigator();
+
+function WeeklyMenuStackGroup() {
+  return (
+    <WeeklyMenuStack.Navigator>
+      <WeeklyMenuStack.Screen
+        options={{ headerShown: false }}
+        name="WeeklyMenu"
+        component={WeeklyMenu}
+      />
+      <WeeklyMenuStack.Screen
+        options={{ headerShown: true }}
+        name="AddMeal"
+        component={AddMeal}
+      />
+    </WeeklyMenuStack.Navigator>
+  );
+}
+
+const ProfileStack = createNativeStackNavigator();
+
+function ProfileStackGroup() {
+  return (
+    <ProfileStack.Navigator>
+      <ProfileStack.Screen
+        options={{ headerShown: false }}
+        name="Profile"
+        component={Profile}
+      />
+    </ProfileStack.Navigator>
   );
 }
 
