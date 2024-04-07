@@ -1,32 +1,16 @@
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
   View,
-  SafeAreaView,
   TouchableOpacity,
-  FlatList,
-  Modal,
+  SafeAreaView,
 } from "react-native";
-import { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
-
 import { auth, db } from "../../firebase";
-import {
-  collection,
-  onSnapshot,
-  doc,
-  getDoc,
-  query,
-  where,
-  setDoc,
-  getDocs,
-} from "firebase/firestore";
-
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import fonts from "../../styles/fonts";
 import containerStyles from "../../styles/containerStyles";
-
-import SearchBar from "../components/SearchBar";
-
 import colors from "../../styles/colors";
 
 const generateWeekDates = () => {
@@ -48,143 +32,72 @@ const generateWeekDates = () => {
 
 export default function WeeklyMenu() {
   const navigation = useNavigation();
-  const [recipeData, setRecipeData] = useState([]);
   const weekDates = generateWeekDates();
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [currentDay, setCurrentDay] = useState(null);
   const [familyId, setFamilyId] = useState(null);
+  const [recipesForTheWeek, setRecipesForTheWeek] = useState({});
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (auth.currentUser) {
-        const userDocRef = doc(db, "users", auth.currentUser.uid);
-        try {
-          const userDocSnap = await getDoc(userDocRef);
-          if (userDocSnap.exists()) {
-            const userData = userDocSnap.data();
-            setFamilyId(userData.familyId); // Oppdaterer familyId tilstand
-          } else {
-            console.log("Kan ikke finne brukerdata");
-          }
-        } catch (error) {
-          console.error("Feil ved henting av brukerdata", error);
+    if (auth.currentUser) {
+      const userDocRef = doc(db, "users", auth.currentUser.uid);
+      getDoc(userDocRef).then((docSnap) => {
+        if (docSnap.exists()) {
+          console.log("User data fetched");
+          setFamilyId(docSnap.data().familyId);
+        } else {
+          console.log("No user data found");
         }
-      }
-    };
-
-    fetchUserData();
+      });
+    }
   }, []);
 
   useEffect(() => {
-    const fetchRecipes = async () => {
-      if (familyId) {
-        const familyRecipesRef = query(
-          collection(db, "recipes"),
-          where("familyId", "==", familyId)
-        );
-        try {
-          const snapshot = await getDocs(familyRecipesRef);
-          const fetchedRecipes = [];
-          snapshot.forEach((doc) =>
-            fetchedRecipes.push({ id: doc.id, ...doc.data() })
-          );
-          setRecipeData(fetchedRecipes);
-        } catch (error) {
-          console.error("Feil ved henting av oppskrifter", error);
-        }
-      }
-    };
+    if (!familyId) return;
 
-    fetchRecipes();
+    const unsubscribes = [];
+
+    weekDates.forEach((date) => {
+      // Bruker datoen direkte uten å endre formatet
+      const docRef = doc(db, "families", familyId, "weekMenu", date);
+
+      const unsubscribe = onSnapshot(
+        docRef,
+        (doc) => {
+          if (doc.exists()) {
+            console.log(`Data found for ${date}:`, doc.data());
+            setRecipesForTheWeek((prevRecipes) => ({
+              ...prevRecipes,
+              [date]: doc.data().recipeTitle,
+            }));
+          } else {
+            console.log(`No data found for ${date}`);
+          }
+        },
+        (error) =>
+          console.error(`Error fetching recipe for date ${date}`, error)
+      );
+
+      unsubscribes.push(unsubscribe);
+    });
+
+    // Cleanup function
+    return () => {
+      unsubscribes.forEach((unsubscribe) => unsubscribe());
+    };
   }, [familyId]);
-
-  const fetchFamilyMembers = async (familyId) => {
-    const familyDocRef = doc(db, "families", familyId);
-    const familyDocSnap = await getDoc(familyDocRef);
-
-    if (familyDocSnap.exists()) {
-      const familyData = familyDocSnap.data();
-      return familyData.members; // Returnerer array av medlems-IDs
-    } else {
-      console.log("Familie ikke funnet");
-      return [];
-    }
-  };
-
-  useEffect(() => {
-    const fetchAndSetRecipes = async () => {
-      const members = await fetchFamilyMembers(familyId);
-      const recipes = [];
-
-      for (const memberId of members) {
-        const memberRecipesRef = collection(db, "recipes"); // Anta at det er en måte å filtrere basert på memberId
-        const q = query(memberRecipesRef, where("userId", "==", memberId)); // Dette forutsetter at oppskrifter har en `userId`
-
-        const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc) => {
-          recipes.push({ id: doc.id, ...doc.data() });
-        });
-      }
-
-      setRecipeData(recipes);
-    };
-
-    if (familyId) {
-      fetchAndSetRecipes();
-    }
-  }, [familyId]);
-
-  const saveRecipeForDay = async (day, recipe) => {
-    const dayDocRef = doc(db, "families", familyId, "weekMenu", day);
-
-    const dayData = {
-      date: day,
-      recipeId: recipe.id,
-      recipeTitle: recipe.title,
-    };
-
-    try {
-      await setDoc(dayDocRef, dayData);
-      console.log("Oppskrift lagret for dagen!");
-    } catch (error) {
-      console.error("Feil ved lagring av oppskrift for dagen", error);
-    }
-  };
-
-  const selectRecipeForDay = (recipe, day) => {
-    saveRecipeForDay(day, recipe);
-    setIsModalVisible(false);
-  };
 
   return (
     <View style={styles.container}>
       <SafeAreaView />
-
-      {/* Header */}
-      <View
-        style={{
-          paddingHorizontal: 20,
-          marginTop: 32,
-          flexDirection: "column",
-          justifyContent: "space-between",
-          gap: 12,
-        }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Text style={fonts.header}>Ukes meny</Text>
-        </View>
+      <View style={styles.header}>
+        <Text style={fonts.header}>Ukes meny</Text>
       </View>
 
-      <View style={[containerStyles.defaultContainer, { flex: 1, gap: 12 }]}>
-        {weekDates.map((date, index) => (
-          <View key={index} style={styles.dayContainer}>
-            <Text style={styles.dayText}>{date}</Text>
+      {weekDates.map((date, index) => (
+        <View key={index} style={styles.dayContainer}>
+          <Text style={styles.dayText}>{date}</Text>
+          {recipesForTheWeek[date] ? (
+            <Text style={styles.recipeText}>{recipesForTheWeek[date]}</Text>
+          ) : (
             <TouchableOpacity
               style={styles.addButton}
               onPress={() =>
@@ -193,9 +106,9 @@ export default function WeeklyMenu() {
             >
               <Text style={styles.addButtonText}>Legg til Oppskrift</Text>
             </TouchableOpacity>
-          </View>
-        ))}
-      </View>
+          )}
+        </View>
+      ))}
     </View>
   );
 }
@@ -205,7 +118,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
-  dayContainer: {},
+  header: {
+    paddingHorizontal: 20,
+    marginTop: 32,
+    flexDirection: "column",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  dayContainer: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
   dayText: {
     fontSize: 16,
     fontWeight: "bold",
@@ -219,14 +143,6 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: colors.blue,
     textAlign: "center",
-  },
-  modalView: {
-    padding: 20,
-  },
-  recipeItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
   },
   recipeText: {
     fontSize: 18,
