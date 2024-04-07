@@ -1,5 +1,5 @@
 {
-  "name": "assistas",
+  "name": "foodPlanner",
   "version": "1.0.0",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "expo": "~49.0.15",
     "expo-image-picker": "~14.3.2",
     "expo-status-bar": "~1.6.0",
-    "expo-updates": "~0.18.18",
+    "expo-updates": "~0.18.19",
     "firebase": "^10.6.0",
     "moment": "^2.29.4",
     "react": "18.2.0",

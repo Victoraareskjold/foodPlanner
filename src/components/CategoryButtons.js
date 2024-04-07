@@ -16,35 +16,23 @@ import fonts from "../../styles/fonts";
 import images from "../../styles/images";
 import containerStyles from "../../styles/containerStyles";
 
-const CategoryButtons = ({ onSelectCategory }) => {
-  const [activeCategory, setActiveCategory] = useState("Se alle");
-
+const CategoryButtons = ({ navigation }) => {
   const handleCategoryPress = (category) => {
-    setActiveCategory(category);
-    onSelectCategory(category);
+    navigation.navigate("RecipeCategoryScreen", { category: category }); // Legg til denne linjen for å navigere
   };
 
   return (
     <View style={styles.container}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator="false">
         <View style={styles.categoryContainer}>
           {categories.map((item) => (
             <TouchableOpacity
               key={item.id}
-              style={[
-                styles.categoryButton,
-                activeCategory === item.text && styles.activeCategory, // Legg til styling for aktiv kategori
-              ]}
+              style={[styles.categoryButton]}
               onPress={() => handleCategoryPress(item.text)}
             >
-              <Text
-                style={[
-                  fonts.body,
-                  activeCategory === item.text && styles.activeText, // Legg til styling for aktiv tekst
-                ]}
-              >
-                {item.text}
-              </Text>
+              <Image source={item.icon} style={{ width: 48, height: 48 }} />
+              <Text style={styles.categoryText}>{item.text}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -55,27 +43,23 @@ const CategoryButtons = ({ onSelectCategory }) => {
 const styles = StyleSheet.create({
   container: {},
   categoryContainer: {
-    flexDirection: "row",
+    flexWrap: "wrap",
+    flexDirection: "row", // legger elementene horisontalt
     justifyContent: "space-between",
-    marginTop: 10,
+    rowGap: 20,
   },
   categoryButton: {
     backgroundColor: colors.primaryLight,
-    marginRight: 8,
     borderRadius: 5,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    marginTop: 0,
-    marginBottom: 24,
+    paddingVertical: 24,
+    backgroundColor: colors.lightRed,
+    width: "48%",
+    alignItems: "center",
+    gap: 12,
   },
-  categoryText: {},
-  activeCategory: {
-    // Customize the styles for the active category
-    backgroundColor: colors.primary, // Use your primary color or any other color you prefer
-    color: colors.white,
-  },
-  activeText: {
-    color: "#FFF",
+  categoryText: {
+    fontSize: 16,
+    fontWeight: "500",
   },
 });
 

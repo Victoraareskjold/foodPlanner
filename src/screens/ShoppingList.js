@@ -5,7 +5,6 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Image,
-  FlatList,
   ScrollView,
 } from "react-native";
 import { useState, useEffect } from "react";
@@ -21,25 +20,17 @@ import {
   getDoc,
 } from "firebase/firestore"; // Correct import statements
 
-import AdCard from "../components/AdCard";
 import { categories } from "../components/Categories";
 import ProfileModal from "../components/ProfileModal";
-import SearchBar from "../components/SearchBar";
 
 import fonts from "../../styles/fonts";
 import images from "../../styles/images";
 import containerStyles from "../../styles/containerStyles";
-import buttons from "../../styles/buttons";
+
 import MealCalendar from "../components/MealCalendar";
 import GroceryList from "../components/GroceryList";
 
-export default function DinSide() {
-  useEffect(() => {
-    if (!auth.currentUser) {
-      navigation.navigate("Login");
-    }
-  }, []);
-
+export default function ShoppingList() {
   const navigation = useNavigation();
 
   const [userProfile, setUserProfile] = useState(null); // Deklarer state for brukerprofil
@@ -151,7 +142,7 @@ export default function DinSide() {
           alignItems: "center",
         }}
       >
-        <Text style={fonts.header}>Din side</Text>
+        <Text style={fonts.header}>Handleliste</Text>
 
         {/* Bell & user */}
         <View style={{ flexDirection: "row" }}>

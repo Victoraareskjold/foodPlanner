@@ -1,14 +1,14 @@
 import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 
-const Statistics = () => {
+const GroceryList = () => {
   return (
     <View>
-      <Text>Statistics</Text>
+      <Text>GroceryList</Text>
     </View>
   );
 };
 
-export default Statistics;
+export default GroceryList;
 
 const styles = StyleSheet.create({});

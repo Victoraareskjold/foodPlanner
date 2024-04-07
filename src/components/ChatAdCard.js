@@ -4,6 +4,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Touchable,
+  Image,
 } from "react-native";
 
 const ChatAdCard = ({ adData }) => {
@@ -11,24 +12,36 @@ const ChatAdCard = ({ adData }) => {
 
   return (
     <TouchableOpacity style={styles.adCard}>
-      <Text style={styles.adTitle}>{adData.overskrift}</Text>
+      <Image
+        style={styles.imageStyling}
+        source={{ uri: adData.bildeUrl }} // Ensure this is the correct path to your image URL in the adData object
+      />
+      <View>
+        <Text style={styles.adTitle}>{adData.overskrift}</Text>
+        <Text style={styles.adTitle}>{adData.sted}</Text>
+      </View>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   adCard: {
-    padding: 10,
     backgroundColor: "white",
     borderBottomWidth: 1,
     borderColor: "lightgrey",
     zIndex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
   adTitle: {
     fontWeight: "bold",
     // ...andre stiler for tittelen...
   },
-  // ...andre stiler...
+  imageStyling: {
+    height: 80,
+    width: 80,
+  },
 });
 
 export default ChatAdCard;

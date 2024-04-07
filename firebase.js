@@ -12,12 +12,12 @@ import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyC7XjzpGyl_HfENSIJMGcxqDB8pB5LNQwk",
-  authDomain: "assistas-7e5e7.firebaseapp.com",
-  projectId: "assistas-7e5e7",
-  storageBucket: "assistas-7e5e7.appspot.com",
-  messagingSenderId: "760338202898",
-  appId: "1:760338202898:web:b2a693280ef80127a4f3cb",
+  apiKey: "AIzaSyBivSu1pTDmTFW5IDzthgmtyl_0S8z-n38",
+  authDomain: "foodplanner-4b696.firebaseapp.com",
+  projectId: "foodplanner-4b696",
+  storageBucket: "foodplanner-4b696.appspot.com",
+  messagingSenderId: "145168551385",
+  appId: "1:145168551385:web:d4899044ec947e5e581dc8",
 };
 
 // Initialize Firebase

@@ -2,22 +2,22 @@ export const categories = [
   {
     id: "all",
     icon: require("../../assets/ic_round-wifi.png"),
-    text: "Se alle",
+    text: "Alle oppskrifter",
   },
   {
     id: 1,
     icon: require("../../assets/ic_round-wifi.png"),
-    text: "Håndverk",
+    text: "Fisk",
   },
   {
     id: 2,
     icon: require("../../assets/ic_round-wifi.png"),
-    text: "IT-hjelp",
+    text: "Vegetar",
   },
   {
     id: 3,
     icon: require("../../assets/ic_round-wifi.png"),
-    text: "Omsorg",
+    text: "Kylling",
   },
   {
     id: 4,

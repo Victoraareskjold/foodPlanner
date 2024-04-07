@@ -28,4 +28,19 @@ export default StyleSheet.create({
     paddingVertical: 24,
     flex: 1,
   },
+  circleBtn: {
+    backgroundColor: colors.lightGreen,
+    alignItems: "center",
+    justifyContent: "center",
+    width: 32,
+    height: 32,
+    borderRadius: 100,
+  },
+  categoryBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 50,
+    marginRight: 8,
+    backgroundColor: colors.grey,
+  },
 });

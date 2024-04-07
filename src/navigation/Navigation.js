@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Image, View } from "react-native";
 
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -12,25 +11,24 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 
 /* Screens */
 import DinSide from "../screens/DinSide";
-import CreateAd from "../screens/CreateAd";
-import AllCategories from "../screens/AllCategories";
 
-import Ads from "../screens/Ads";
+import ShoppingList from "../screens/ShoppingList";
+
+import Recipes from "../screens/Recipes";
+import CreateRecipe from "../screens/CreateRecipe";
+import SelectCategory from "../screens/SelectCategory";
 
 import Onboarding from "../screens/onboarding/Onboarding";
 
 import Login from "../screens/onboarding/Login";
 import SetupName from "../screens/onboarding/SetupName";
 import SignUp from "../screens/onboarding/SignUp";
-import AdView from "../screens/AdView";
-import YourAdView from "../screens/YourAdView";
-import AdChat from "../screens/AdChat";
 
-import AllMessages from "../screens/AllMessages";
+import WeeklyMenu from "../screens/WeeklyMenu";
 
 import Profile from "../screens/Profile";
-import ChatScreen from "../screens/ChatScreen";
-import ChatChannels from "../screens/ChatChannels";
+
+import RecipeCategoryScreen from "../screens/RecipeCategoryScreen";
 
 /* Tab bottom */
 const Tab = createBottomTabNavigator();
@@ -45,11 +43,11 @@ function TabGroup() {
           let iconName;
           if (route.name === "DinSideTab") {
             iconName = focused ? "home" : "home-outline";
-          } else if (route.name === "Ads") {
+          } else if (route.name === "RecipeStackGroup") {
             iconName = focused ? "receipt" : "receipt-outline";
-          } else if (route.name === "ChatChannels") {
-            iconName = focused ? "chatbox" : "chatbox-outline";
-          } else if (route.name === "Profile") {
+          } else if (route.name === "ShoppingListStackGroup") {
+            iconName = focused ? "cart" : "cart-outline";
+          } else if (route.name === "WeeklyMenu") {
             iconName = focused ? "person" : "person-outline";
           }
 
@@ -64,19 +62,19 @@ function TabGroup() {
         options={{ tabBarLabel: "Hjem" }}
       />
       <Tab.Screen
-        name="Ads"
-        component={Ads}
-        options={{ tabBarLabel: "Annonser" }}
+        name="RecipeStackGroup"
+        component={RecipeStackGroup}
+        options={{ tabBarLabel: "Oppskrifter" }}
       />
       <Tab.Screen
-        name="ChatChannels"
-        component={ChatChannels}
-        options={{ tabBarLabel: "Meldinger" }}
+        name="WeeklyMenu"
+        component={WeeklyMenu}
+        options={{ tabBarLabel: "Ukes meny" }}
       />
       <Tab.Screen
-        name="Profile"
-        component={Profile}
-        options={{ tabBarLabel: "Din profil" }}
+        name="ShoppingListStackGroup"
+        component={ShoppingListStackGroup}
+        options={{ tabBarLabel: "Handleliste" }}
       />
     </Tab.Navigator>
   );
@@ -128,51 +126,50 @@ function DinSideStackGroup() {
         name="DinSide"
         component={TabGroup}
       />
-      <DinSideStack.Screen
-        options={{ headerShown: true, headerTitle: "Opprett annonse" }}
-        name="CreateAd"
-        component={CreateAd}
-      />
-      <DinSideStack.Screen
-        options={{ headerShown: true, headerTitle: "Alle kategorier" }}
-        name="AllCategories"
-        component={AllCategories}
-      />
-      <DinSideStack.Screen
-        options={{ headerShown: true, headerTitle: " " }}
-        name="AdView"
-        component={AdView}
-      />
-      <DinSideStack.Screen
-        options={{ headerShown: true, headerTitle: " " }}
-        name="YourAdView"
-        component={YourAdView}
-      />
-      <DinSideStack.Screen
-        options={{ headerShown: true, headerTitle: " " }}
-        name="ChatScreen"
-        component={ChatScreen}
-      />
-      <DinSideStack.Screen
-        options={{ headerShown: true, headerTitle: " " }}
-        name="ChatChannels"
-        component={ChatChannels}
-      />
     </DinSideStack.Navigator>
   );
 }
 
-const AdsStack = createNativeStackNavigator();
+const ShoppingListStack = createNativeStackNavigator();
 
-function AdsStackGroup() {
+function ShoppingListStackGroup() {
   return (
-    <AdsStack.Navigator>
-      <AdsStack.Screen
+    <ShoppingListStack.Navigator>
+      <ShoppingListStack.Screen
         options={{ headerShown: false }}
-        name="Ads"
-        component={Ads}
+        name="ShoppingList"
+        component={ShoppingList}
       />
-    </AdsStack.Navigator>
+    </ShoppingListStack.Navigator>
+  );
+}
+
+const RecipeStack = createNativeStackNavigator();
+
+function RecipeStackGroup() {
+  return (
+    <RecipeStack.Navigator>
+      <RecipeStack.Screen
+        options={{ headerShown: false }}
+        name="Recipes"
+        component={Recipes}
+      />
+      <RecipeStack.Screen
+        options={{ headerShown: true }}
+        name="CreateRecipe"
+        component={CreateRecipe}
+      />
+      <RecipeStack.Screen
+        options={{ headerShown: true }}
+        name="SelectCategory"
+        component={SelectCategory}
+      />
+      <RecipeStack.Screen
+        name="RecipeCategoryScreen"
+        component={RecipeCategoryScreen}
+        options={{ headerShown: true, headerTitle: "Kategorivisning" }}
+      />
+    </RecipeStack.Navigator>
   );
 }
 
