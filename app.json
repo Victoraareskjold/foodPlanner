@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "assistas",
-    "slug": "assistas",
+    "name": "foodplanner",
+    "slug": "foodplanner",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -11,31 +11,32 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "foodPlanner"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "foodplanner.com"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "720f9ede-554b-41f8-9edd-7df88043d58e"
+        "projectId": "ee376f00-bbe7-4817-9e1c-8520c68793fc"
       }
     },
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/720f9ede-554b-41f8-9edd-7df88043d58e"
-    }
+      "url": "https://u.expo.dev/ee376f00-bbe7-4817-9e1c-8520c68793fc"
+    },
+    "owner": "victoraareskjold"
   }
 }
