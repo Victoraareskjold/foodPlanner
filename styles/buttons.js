@@ -39,8 +39,8 @@ export default StyleSheet.create({
   categoryBtn: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 50,
+    borderRadius: 5,
     marginRight: 8,
-    backgroundColor: colors.grey,
+    backgroundColor: colors.darkGrey,
   },
 });

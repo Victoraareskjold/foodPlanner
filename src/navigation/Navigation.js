@@ -163,12 +163,12 @@ function RecipeStackGroup() {
         component={Recipes}
       />
       <RecipeStack.Screen
-        options={{ headerShown: true }}
+        options={{ headerShown: true, headerTitle: "" }}
         name="CreateRecipe"
         component={CreateRecipe}
       />
       <RecipeStack.Screen
-        options={{ headerShown: true }}
+        options={{ headerShown: true, headerTitle: "" }}
         name="SelectCategory"
         component={SelectCategory}
       />

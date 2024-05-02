@@ -84,6 +84,7 @@ export default function Recipes() {
       <View style={[containerStyles.defaultContainer, { flex: 1 }]}>
         <FlatList
           data={recipeData}
+          showsVerticalScrollIndicator={false}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -111,7 +112,7 @@ export default function Recipes() {
                   }}
                 >
                   {item.categories.map((category, index) => (
-                    <View key={index} style={styles.categoryContainer}>
+                    <View key={index} style={buttons.categoryBtn}>
                       <Text style={styles.categoryText}>{category}</Text>
                     </View>
                   ))}
@@ -119,7 +120,7 @@ export default function Recipes() {
 
                 <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
                   {item.countries.map((country, index) => (
-                    <View key={index} style={styles.countryContainer}>
+                    <View key={index} style={buttons.categoryBtn}>
                       <Text style={styles.countryText}>{country}</Text>
                     </View>
                   ))}
@@ -182,7 +183,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 5,
-    backgroundColor: colors.grey,
+    backgroundColor: colors.white,
     gap: 12,
   },
 });

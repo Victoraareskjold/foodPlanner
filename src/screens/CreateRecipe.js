@@ -7,6 +7,8 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -25,8 +27,12 @@ const CreateRecipe = () => {
   const [title, setTitle] = useState("");
   const [link, setLink] = useState("");
   const [time, setTime] = useState("");
+
   const { selectedCategories, selectedCountries } = route.params ?? {};
-  const [ingredients, setIngredients] = useState([""]);
+  const [ingredients, setIngredients] = useState([]);
+  const [ingredientName, setIngredientName] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [unit, setUnit] = useState("");
   const ingredientRefs = useRef([]);
 
   const [error, setError] = useState("");
@@ -34,32 +40,47 @@ const CreateRecipe = () => {
   useEffect(() => {
     const lastIndex = ingredients.length - 1;
     const lastRef = ingredientRefs.current[lastIndex];
-
-    if (lastRef && lastRef.current) {
-      lastRef.current.focus();
+    if (lastRef && lastRef.name) {
+      lastRef.name.focus();
     }
   }, [ingredients.length]);
 
-  const handleIngredientChange = (text, index) => {
+  const handleIngredientChange = (value, index, field) => {
     const newIngredients = [...ingredients];
-    newIngredients[index] = text;
+    newIngredients[index][field] = value;
     setIngredients(newIngredients);
   };
 
-  const addIngredientField = () => {
-    if (ingredients[ingredients.length - 1] !== "") {
-      setIngredients([...ingredients, ""]);
+  const addIngredient = () => {
+    if (ingredientName && quantity && unit) {
+      const newIngredient = { name: ingredientName, quantity, unit };
+      setIngredients([...ingredients, newIngredient]);
+      // Nullstiller inputfeltene
+      setIngredientName("");
+      /* setQuantity("");
+      setUnit(""); */
     } else {
-      ingredientRefs.current[ingredients.length - 1].current.focus();
+      // Håndter feil hvis noen felt mangler
+      setError("Alle felt må fylles ut for å legge til en ingrediens");
     }
   };
 
+  const renderAddedIngredients = () => {
+    return ingredients.map((ingredient, index) => (
+      <View
+        key={index}
+        style={{ flexDirection: "row", gap: 12, marginBottom: 8 }}
+      >
+        <Text style={[{ flex: 3 }]}>{ingredient.name}</Text>
+        <Text style={[{ flex: 1 }]}>{ingredient.quantity}</Text>
+        <Text style={[{ flex: 1 }]}>{ingredient.unit}</Text>
+      </View>
+    ));
+  };
+
   const saveRecipeToFirebase = async () => {
-    if (
-      (selectedCategories?.length ?? 0) === 0 ||
-      (selectedCountries?.length ?? 0) === 0
-    ) {
-      setError("Du må velge minst én kategori og ett land før du lagrer.");
+    if ((title?.length ?? 0) === 0) {
+      setError("Du må gi oppskriften en tittel.");
       return;
     }
 
@@ -102,112 +123,134 @@ const CreateRecipe = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <SafeAreaView />
-      <View style={{ padding: 20 }}>
-        <Image
-          source={require("../../assets/vedBilde.png")}
-          style={{ height: 196, width: "100%", borderRadius: 10 }}
-        />
-      </View>
-      <View
-        style={[containerStyles.defaultContainer, { gap: 8, marginTop: 0 }]}
-      >
-        <View style={{ gap: 12 }}>
-          <TextInput
-            placeholder="Overskrift"
-            value={title}
-            onChangeText={setTitle}
-            style={placeholderStyles.simple}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+    >
+      <ScrollView style={styles.container}>
+        <SafeAreaView />
+        <View>
+          <Image
+            source={require("../../assets/vedBilde.png")}
+            style={{ height: 200, width: "100%" }}
           />
         </View>
-        <View style={{ gap: 12, flexDirection: "row" }}>
-          <TextInput
-            placeholder="Link til oppskrift"
-            value={link}
-            onChangeText={setLink}
-            style={[placeholderStyles.simple, { flex: 1 }]}
-          />
-          <TextInput
-            placeholder="Tid"
-            value={time}
-            onChangeText={setTime}
-            style={[placeholderStyles.simple, { width: 88 }]}
-          />
-        </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ flexDirection: "row", gap: 8 }}
-        >
-          {selectedCategories && selectedCategories.length > 0 && (
-            <View style={{ flexDirection: "row", gap: 8 }}>
-              {selectedCategories.map((category, index) => (
-                <TouchableOpacity key={index} style={buttons.categoryBtn}>
-                  <Text>{category}</Text>
-                </TouchableOpacity>
-              ))}
+        <View style={[containerStyles.defaultContainer, { gap: 32 }]}>
+          <View style={{ gap: 12 }}>
+            <View>
+              <TextInput
+                placeholder="Overskrift"
+                value={title}
+                onChangeText={setTitle}
+                style={placeholderStyles.simple}
+              />
             </View>
-          )}
-
-          {/* Tilsvarende kan du vise valgte land hvis det er nødvendig */}
-          {selectedCountries && selectedCountries.length > 0 && (
-            <View style={{ flexDirection: "row", gap: 8 }}>
-              {selectedCountries.map((country, index) => (
-                <TouchableOpacity key={index} style={buttons.categoryBtn}>
-                  <Text>{country}</Text>
-                </TouchableOpacity>
-              ))}
+            <View style={{ gap: 12, flexDirection: "row" }}>
+              <TextInput
+                placeholder="Link til oppskrift"
+                value={link}
+                onChangeText={setLink}
+                style={[placeholderStyles.simple, { flex: 1 }]}
+              />
+              <TextInput
+                placeholder="tid"
+                value={time}
+                onChangeText={setTime}
+                style={[placeholderStyles.simple, { minWidth: 96 }]}
+              />
             </View>
-          )}
-        </ScrollView>
+          </View>
 
-        <TouchableOpacity onPress={() => navigation.navigate("SelectCategory")}>
-          <Text style={{ color: colors.blue }}>
-            {selectedCategories && selectedCategories.length > 0
-              ? "Endre kategorier"
-              : "Velg kategorier"}
-          </Text>
-        </TouchableOpacity>
+          <View style={{ gap: 12 }}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={{ flexDirection: "row", gap: 8 }}
+            >
+              {selectedCategories && selectedCategories.length > 0 && (
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  {selectedCategories.map((category, index) => (
+                    <TouchableOpacity key={index} style={buttons.categoryBtn}>
+                      <Text>{category}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
 
-        {/* Ingredienser */}
-        <View style={{ gap: 4 }}>
-          <Text style={styles.header}>Legg til ingredienser</Text>
-          {ingredients.map((ingredient, index) => (
+              {/* Tilsvarende kan du vise valgte land hvis det er nødvendig */}
+              {selectedCountries && selectedCountries.length > 0 && (
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  {selectedCountries.map((country, index) => (
+                    <TouchableOpacity key={index} style={buttons.categoryBtn}>
+                      <Text>{country}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.categoryBtn}
+              onPress={() => navigation.navigate("SelectCategory")}
+            >
+              <Text style={{ textAlign: "center" }}>
+                {selectedCategories && selectedCategories.length > 0
+                  ? "Endre kategorier"
+                  : "Velg kategorier"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Ingredienser */}
+          <View style={{ gap: 12 }}>
+            {/* Ingrediens input felt */}
             <TextInput
-              key={index}
-              ref={ingredientRefs.current[index]}
-              value={ingredient}
-              onChangeText={(text) => handleIngredientChange(text, index)}
-              placeholder="Legg til ingrediens.."
-              style={placeholderStyles.simple}
+              value={ingredientName}
+              onChangeText={setIngredientName}
+              placeholder="Ingrediens navn"
+              style={[placeholderStyles.simple, { flex: 3 }]}
             />
-          ))}
-          <TouchableOpacity style={styles.button} onPress={addIngredientField}>
-            <Text style={styles.buttonText}>Legg til flere ingredienser</Text>
+            <View style={{ flexDirection: "row", gap: 12 }}>
+              <TextInput
+                value={quantity}
+                onChangeText={setQuantity}
+                placeholder="Antall"
+                style={[placeholderStyles.simple, { width: 80 }]}
+              />
+              <TextInput
+                value={unit}
+                onChangeText={setUnit}
+                placeholder="Enhet"
+                style={[placeholderStyles.simple, { width: 80 }]}
+              />
+              <TouchableOpacity
+                style={styles.categoryBtn}
+                onPress={addIngredient}
+              >
+                <Text style={[fonts.btnBody, { alignSelf: "center" }]}>
+                  Legg til
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {renderAddedIngredients()}
+          </View>
+          {error.length > 0 && (
+            <Text style={{ color: "red", textAlign: "center" }}>{error}</Text>
+          )}
+          <TouchableOpacity
+            style={[styles.button, {}]}
+            onPress={saveRecipeToFirebase}
+          >
+            <Text
+              style={[fonts.btnBody, { alignSelf: "center", color: "#FFF" }]}
+            >
+              Lagre oppskrift
+            </Text>
           </TouchableOpacity>
         </View>
-
-        {error.length > 0 && (
-          <Text style={{ color: "red", textAlign: "center", marginTop: 10 }}>
-            {error}
-          </Text>
-        )}
-        <TouchableOpacity
-          style={{
-            paddingVertical: 12,
-            backgroundColor: "#007bff",
-            borderRadius: 50,
-          }}
-          onPress={saveRecipeToFirebase}
-        >
-          <Text style={[fonts.btnBody, { alignSelf: "center", color: "#FFF" }]}>
-            Lagre oppskrift
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -217,5 +260,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  categoryBtn: {
+    backgroundColor: "#EEEEEE",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderRadius: 5,
+    flex: 1,
+  },
+  button: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderRadius: 5,
+    flex: 1,
   },
 });

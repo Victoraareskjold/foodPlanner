@@ -12,7 +12,7 @@ export default StyleSheet.create({
     fontWeight: "400",
   },
   btnBody: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "500",
   },
   body: {

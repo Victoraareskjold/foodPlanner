@@ -12,8 +12,8 @@ import containerStyles from "../../styles/containerStyles";
 import fonts from "../../styles/fonts";
 import buttons from "../../styles/buttons";
 
-const categories = ["Kjøtt", "Fisk", "Kylling"];
-const countries = ["Asian", "American", "Norwegian"];
+const categories = ["Kjøtt", "Kylling", "Fisk", "Vegetar"];
+const countries = ["Asian", "American", "Norwegian", "Indisk", "Italiensk"];
 
 const SelectCategory = () => {
   const navigation = useNavigation();
@@ -46,9 +46,10 @@ const SelectCategory = () => {
       <View
         style={[containerStyles.defaultContainer, { gap: 20, marginTop: 12 }]}
       >
-        <Text style={fonts.header}>Velg dine kategorier</Text>
+        <Text style={fonts.header}>Velg råvarer</Text>
         <View>
-          <Text style={fonts.subHeader}>Råvare</Text>
+          {/*           <Text style={fonts.subHeader}>Råvare</Text>
+           */}
           <View
             style={{
               flexDirection: "row",
@@ -81,7 +82,7 @@ const SelectCategory = () => {
             ))}
           </View>
         </View>
-        <View>
+        {/* <View>
           <Text style={fonts.subHeader}>Land</Text>
           <View
             style={{
@@ -114,7 +115,7 @@ const SelectCategory = () => {
               </TouchableOpacity>
             ))}
           </View>
-        </View>
+        </View> */}
 
         <TouchableOpacity
           onPress={() => {
