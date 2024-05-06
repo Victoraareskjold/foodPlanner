@@ -145,10 +145,11 @@ export default function DinSide() {
       <View
         style={{
           paddingHorizontal: 20,
-          marginTop: 32,
+          marginTop: 12,
           flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "center",
+          minHeight: 40,
         }}
       >
         <Text style={fonts.header}>Din side</Text>

@@ -56,7 +56,7 @@ export default function Recipes() {
       <View
         style={{
           paddingHorizontal: 20,
-          marginTop: 32,
+          marginTop: 12,
           flexDirection: "column",
           justifyContent: "space-between",
           gap: 12,
@@ -137,7 +137,7 @@ export default function Recipes() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#FCFCFC",
   },
   cardGrid: {
     flexDirection: "row",

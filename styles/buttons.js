@@ -29,7 +29,7 @@ export default StyleSheet.create({
     flex: 1,
   },
   circleBtn: {
-    backgroundColor: colors.lightGreen,
+    backgroundColor: colors.lightGrey,
     alignItems: "center",
     justifyContent: "center",
     width: 32,
@@ -37,8 +37,8 @@ export default StyleSheet.create({
     borderRadius: 100,
   },
   categoryBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
     borderRadius: 5,
     marginRight: 8,
     backgroundColor: colors.darkGrey,

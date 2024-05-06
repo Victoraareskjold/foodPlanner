@@ -91,24 +91,25 @@ export default function WeeklyMenu() {
       <View style={styles.header}>
         <Text style={fonts.header}>Ukes meny</Text>
       </View>
-
-      {weekDates.map((date, index) => (
-        <View key={index} style={styles.dayContainer}>
-          <Text style={styles.dayText}>{date}</Text>
-          {recipesForTheWeek[date] ? (
-            <Text style={styles.recipeText}>{recipesForTheWeek[date]}</Text>
-          ) : (
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() =>
-                navigation.navigate("AddMeal", { currentDay: date })
-              }
-            >
-              <Text style={styles.addButtonText}>Legg til Oppskrift</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      ))}
+      <View style={[containerStyles.defaultContainer, { flex: 1 }]}>
+        {weekDates.map((date, index) => (
+          <View key={index} style={styles.dayContainer}>
+            <Text style={styles.dayText}>{date}</Text>
+            {recipesForTheWeek[date] ? (
+              <Text style={styles.recipeText}>{recipesForTheWeek[date]}</Text>
+            ) : (
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() =>
+                  navigation.navigate("AddMeal", { currentDay: date })
+                }
+              >
+                <Text style={styles.addButtonText}>Legg til Oppskrift</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
@@ -116,17 +117,17 @@ export default function WeeklyMenu() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#FCFCFC",
   },
   header: {
     paddingHorizontal: 20,
-    marginTop: 32,
+    marginTop: 12,
     flexDirection: "column",
     justifyContent: "space-between",
     gap: 12,
   },
   dayContainer: {
-    padding: 10,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
   },
