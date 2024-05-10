@@ -16,9 +16,15 @@ import colors from "../../styles/colors";
 const generateWeekDates = () => {
   let dates = [];
   const today = new Date();
-  for (let i = 0; i < 5; i++) {
-    let newDate = new Date(today);
-    newDate.setDate(today.getDate() + i);
+  const startOfWeek = new Date(today);
+  const dayOfWeek = startOfWeek.getDay(); // Søndag = 0, Mandag = 1, ..., Lørdag = 6
+  const diff = startOfWeek.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Finne mandagen i denne uken
+
+  startOfWeek.setDate(diff);
+
+  for (let i = 0; i < 7; i++) {
+    let newDate = new Date(startOfWeek);
+    newDate.setDate(startOfWeek.getDate() + i);
     dates.push(
       newDate.toLocaleDateString("no-NO", {
         weekday: "long",
@@ -128,8 +134,6 @@ const styles = StyleSheet.create({
   },
   dayContainer: {
     paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
   },
   dayText: {
     fontSize: 16,

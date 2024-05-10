@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   SafeAreaView,
   Image,
+  TextInput,
 } from "react-native";
 import { db, auth } from "../../firebase";
 import {
@@ -25,6 +26,8 @@ import {
 import containerStyles from "../../styles/containerStyles";
 import fonts from "../../styles/fonts";
 import Check from "../../assets/SVGs/Check";
+import colors from "../../styles/colors";
+import placeholderStyles from "../../styles/placeholderStyles";
 
 const ShoppingList = () => {
   const [ingredients, setIngredients] = useState([]);
@@ -122,9 +125,9 @@ const ShoppingList = () => {
           quantity: ingredient.quantity,
           completed: true,
         });
-        if ((ingredientRef, (completed = true))) {
+        /* if ((ingredientRef, (completed = true))) {
           handleUncompleteIngredient(ingredient);
-        }
+        } */
         fetchIngredients(); // Oppdater visningen etter å ha endret tilstanden
       }
     }
@@ -159,15 +162,18 @@ const ShoppingList = () => {
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1 }}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
     >
       <View style={styles.container}>
-        <SafeAreaView />
+        <SafeAreaView style={{ backgroundColor: "#FFF" }} />
         <View style={styles.header}>
           <Text style={fonts.header}>Handleliste</Text>
         </View>
         <View style={[containerStyles.defaultContainer, { gap: 32 }]}>
-          <ScrollView>
+          <ScrollView
+            contentContainerStyle={{ gap: 20 }}
+            style={{ overflow: "visible", zIndex: 0 }}
+          >
             <View style={styles.list}>
               {ingredients.map((ingredient, index) => (
                 <TouchableOpacity
@@ -176,8 +182,12 @@ const ShoppingList = () => {
                   style={styles.listItem}
                 >
                   <View style={styles.listText}>
-                    <Text>{ingredient.quantity}</Text>
-                    <Text>{ingredient.unit}</Text>
+                    <View
+                      style={{ minWidth: 48, flexDirection: "row", gap: 4 }}
+                    >
+                      <Text>{ingredient.quantity}</Text>
+                      <Text>{ingredient.unit}</Text>
+                    </View>
                     <Text
                       style={{
                         marginStart: 8,
@@ -192,11 +202,12 @@ const ShoppingList = () => {
                 </TouchableOpacity>
               ))}
             </View>
-          </ScrollView>
-          <TouchableOpacity onPress={toggleCompletedList}>
-            <Text>{showCompleted ? "Skjul fullførte" : "Vis fullførte"}</Text>
-          </TouchableOpacity>
-          <ScrollView>
+            <TouchableOpacity
+              style={{ alignSelf: "center" }}
+              onPress={toggleCompletedList}
+            >
+              <Text>{showCompleted ? "Skjul fullførte" : "Vis fullførte"}</Text>
+            </TouchableOpacity>
             {showCompleted && completedIngredients.length > 0 && (
               <View style={styles.list}>
                 {completedIngredients.map((ingredient, index) => (
@@ -206,8 +217,12 @@ const ShoppingList = () => {
                     style={styles.listItem}
                   >
                     <View style={styles.listText}>
-                      <Text>{ingredient.quantity}</Text>
-                      <Text>{ingredient.unit}</Text>
+                      <View
+                        style={{ minWidth: 48, flexDirection: "row", gap: 4 }}
+                      >
+                        <Text>{ingredient.quantity}</Text>
+                        <Text>{ingredient.unit}</Text>
+                      </View>
                       <Text
                         style={{
                           marginStart: 8,
@@ -226,6 +241,34 @@ const ShoppingList = () => {
               </View>
             )}
           </ScrollView>
+        </View>
+      </View>
+      <View style={styles.inputContainer}>
+        <View style={{ gap: 12 }}>
+          {/* Ingrediens input felt */}
+          <TextInput
+            placeholder="Ingrediens navn"
+            style={[placeholderStyles.simple, { flex: 3 }]}
+          />
+          <View style={{ flexDirection: "row", gap: 12 }}>
+            <TextInput
+              placeholder="Antall"
+              style={[placeholderStyles.simple, { width: 80 }]}
+            />
+            <TextInput
+              placeholder="Enhet"
+              style={[placeholderStyles.simple, { width: 80 }]}
+            />
+            <TouchableOpacity
+              style={[styles.categoryBtn, { backgroundColor: "#185BF0" }]}
+            >
+              <Text
+                style={[fonts.btnBody, { alignSelf: "center", color: "#FFF" }]}
+              >
+                Legg til
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -277,9 +320,23 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    marginTop: 12,
+    paddingTop: 12,
     flexDirection: "column",
     justifyContent: "space-between",
     gap: 12,
+    zIndex: 1,
+    backgroundColor: "#FFF",
+  },
+  inputContainer: {
+    backgroundColor: "#FCFCFC",
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+  },
+  categoryBtn: {
+    backgroundColor: "#EEEEEE",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderRadius: 5,
+    flex: 1,
   },
 });
