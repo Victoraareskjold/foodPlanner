@@ -5,152 +5,164 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  KeyboardAvoidingView,
   SafeAreaView,
-  Image,
+  Platform,
+  KeyboardAvoidingView,
   TextInput,
 } from "react-native";
 import { db, auth } from "../../firebase";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  getDoc,
-  setDoc,
-  deleteField,
-  updateDoc,
-  deleteDoc,
-} from "firebase/firestore";
+import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import containerStyles from "../../styles/containerStyles";
 import fonts from "../../styles/fonts";
 import Check from "../../assets/SVGs/Check";
-import colors from "../../styles/colors";
+import Visible from "../../assets/SVGs/Visible";
+import Invisible from "../../assets/SVGs/Invisible";
 import placeholderStyles from "../../styles/placeholderStyles";
+
+const getWeekId = () => {
+  const today = new Date();
+  const dayOfYear = Math.floor(
+    (today - new Date(today.getFullYear(), 0, 1)) / 86400000 + 1
+  );
+  const weekNumber = Math.ceil((dayOfYear - today.getDay() + 10) / 7);
+
+  return `Year${today.getFullYear()}- Week${weekNumber}`;
+};
 
 const ShoppingList = () => {
   const [ingredients, setIngredients] = useState([]);
-  const [completedIngredients, setCompletedIngredients] = useState([]);
   const [showCompleted, setShowCompleted] = useState(false);
-
-  const fetchIngredients = async () => {
-    if (auth.currentUser) {
-      const userDocRef = doc(db, "users", auth.currentUser.uid);
-      const userDocSnap = await getDoc(userDocRef);
-      if (userDocSnap.exists()) {
-        const familyId = userDocSnap.data().familyId;
-        const weekMenuRef = collection(db, "families", familyId, "weekMenu");
-        const weekMenuSnap = await getDocs(weekMenuRef);
-        let recipeCounts = {};
-        weekMenuSnap.forEach((doc) => {
-          recipeCounts[doc.data().recipeId] =
-            (recipeCounts[doc.data().recipeId] || 0) + 1;
-        });
-
-        const recipesQuery = query(
-          collection(db, "recipes"),
-          where("familyId", "==", familyId)
-        );
-        const recipesSnapshot = await getDocs(recipesQuery);
-        let ingredientMap = {};
-        recipesSnapshot.forEach((doc) => {
-          const count = recipeCounts[doc.id] || 0;
-          if (count > 0) {
-            doc.data().ingredients?.forEach((ingredient) => {
-              if (ingredient.name && ingredient.name.length > 1) {
-                const key = `${ingredient.name.toLowerCase()}|${
-                  ingredient.unit
-                }`;
-                const quantityToAdd = parseFloat(ingredient.quantity) * count;
-                if (!ingredientMap[key]?.completed) {
-                  ingredientMap[key] = ingredientMap[key]
-                    ? {
-                        ...ingredientMap[key],
-                        quantity: ingredientMap[key].quantity + quantityToAdd,
-                      }
-                    : { ...ingredient, quantity: quantityToAdd };
-                }
-              }
-            });
-          }
-        });
-
-        // Hente fullførte ingredienser
-        const completedRef = collection(
-          db,
-          "families",
-          familyId,
-          "completedIngredients"
-        );
-        const completedSnap = await getDocs(completedRef);
-        completedSnap.forEach((doc) => {
-          const data = doc.data();
-          const key = `${data.name.toLowerCase()}|${data.unit}`;
-          ingredientMap[key] = { ...data, completed: true };
-        });
-
-        const aggregatedIngredients = Object.values(ingredientMap);
-        setIngredients(aggregatedIngredients.filter((ing) => !ing.completed));
-        setCompletedIngredients(
-          aggregatedIngredients.filter((ing) => ing.completed)
-        );
-      } else {
-        console.log("No user data found");
-      }
-    }
-  };
+  const [familyId, setFamilyId] = useState(null);
+  const [ingredientName, setIngredientName] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [unit, setUnit] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchIngredients();
-  }, []);
-
-  const handleCompleteIngredient = async (ingredient) => {
     if (auth.currentUser) {
       const userDocRef = doc(db, "users", auth.currentUser.uid);
-      const userDocSnap = await getDoc(userDocRef);
-      if (userDocSnap.exists()) {
-        const familyId = userDocSnap.data().familyId;
-        const ingredientRef = doc(
+      getDoc(userDocRef).then((docSnap) => {
+        if (docSnap.exists()) {
+          setFamilyId(docSnap.data().familyId);
+        }
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (familyId) {
+      const fetchShoppingList = async () => {
+        const weekId = getWeekId();
+        const shoppingListRef = doc(
           db,
           "families",
           familyId,
-          "completedIngredients",
-          ingredient.name
+          "shoppingLists",
+          weekId
         );
 
-        await setDoc(ingredientRef, {
-          name: ingredient.name,
-          unit: ingredient.unit,
-          quantity: ingredient.quantity,
-          completed: true,
-        });
-        /* if ((ingredientRef, (completed = true))) {
-          handleUncompleteIngredient(ingredient);
-        } */
-        fetchIngredients(); // Oppdater visningen etter å ha endret tilstanden
-      }
+        const unsubscribe = onSnapshot(
+          shoppingListRef,
+          (doc) => {
+            if (doc.exists()) {
+              const data = doc.data();
+              setIngredients(data.ingredients);
+            } else {
+              console.log("Shopping list document does not exist");
+            }
+          },
+          (error) => {
+            console.log("Error fetching shopping list document:", error);
+          }
+        );
+
+        return () => unsubscribe();
+      };
+
+      fetchShoppingList();
+    }
+  }, [familyId]);
+
+  const updateIngredientStatus = async (ingredient, completed) => {
+    if (familyId) {
+      const weekId = getWeekId();
+      const shoppingListRef = doc(
+        db,
+        "families",
+        familyId,
+        "shoppingLists",
+        weekId
+      );
+
+      const updatedIngredients = ingredients.map((ing) =>
+        ing.name === ingredient.name && ing.unit === ingredient.unit
+          ? { ...ing, completed }
+          : ing
+      );
+
+      await setDoc(
+        shoppingListRef,
+        { ingredients: updatedIngredients },
+        { merge: true }
+      );
+
+      setIngredients(updatedIngredients);
     }
   };
 
-  const handleUncompleteIngredient = async (ingredient) => {
-    if (auth.currentUser) {
-      const userDocRef = doc(db, "users", auth.currentUser.uid);
-      const userDocSnap = await getDoc(userDocRef);
-      if (userDocSnap.exists()) {
-        const familyId = userDocSnap.data().familyId;
-        const ingredientRef = doc(
+  const addIngredient = async () => {
+    if (ingredientName && quantity && unit) {
+      if (familyId) {
+        const weekId = getWeekId();
+        const shoppingListRef = doc(
           db,
           "families",
           familyId,
-          "completedIngredients",
-          ingredient.name
+          "shoppingLists",
+          weekId
         );
-        await deleteDoc(ingredientRef, {
-          ingredient,
-        });
-        fetchIngredients(); // Oppdater visningen etter å ha endret tilstanden
+
+        const existingIngredientIndex = ingredients.findIndex(
+          (ing) => ing.name === ingredientName && ing.unit === unit
+        );
+
+        let updatedIngredients = [...ingredients];
+
+        if (existingIngredientIndex !== -1) {
+          // Oppdater eksisterende ingrediens
+          const existingIngredient =
+            updatedIngredients[existingIngredientIndex];
+          const updatedQuantity =
+            parseFloat(existingIngredient.quantity) + parseFloat(quantity);
+          updatedIngredients[existingIngredientIndex] = {
+            ...existingIngredient,
+            quantity: updatedQuantity.toString(),
+          };
+        } else {
+          // Legg til ny ingrediens
+          const newIngredient = {
+            name: ingredientName,
+            quantity,
+            unit,
+            completed: false,
+          };
+          updatedIngredients.push(newIngredient);
+        }
+
+        await setDoc(
+          shoppingListRef,
+          { ingredients: updatedIngredients },
+          { merge: true }
+        );
+
+        setIngredients(updatedIngredients);
+        setIngredientName("");
+        setQuantity("");
+        setUnit("");
+        setError("");
       }
+    } else {
+      setError("Alle felt må fylles ut for å legge til en ingrediens.");
     }
   };
 
@@ -175,45 +187,12 @@ const ShoppingList = () => {
             style={{ overflow: "visible", zIndex: 0 }}
           >
             <View style={styles.list}>
-              {ingredients.map((ingredient, index) => (
-                <TouchableOpacity
-                  onPress={() => handleCompleteIngredient(ingredient)}
-                  key={`${ingredient.name.toLowerCase()}|${index}`}
-                  style={styles.listItem}
-                >
-                  <View style={styles.listText}>
-                    <View
-                      style={{ minWidth: 48, flexDirection: "row", gap: 4 }}
-                    >
-                      <Text>{ingredient.quantity}</Text>
-                      <Text>{ingredient.unit}</Text>
-                    </View>
-                    <Text
-                      style={{
-                        marginStart: 8,
-                        fontSize: 16,
-                        fontWeight: "500",
-                      }}
-                    >
-                      {ingredient.name}
-                    </Text>
-                  </View>
-                  <View style={styles.checkBox}></View>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <TouchableOpacity
-              style={{ alignSelf: "center" }}
-              onPress={toggleCompletedList}
-            >
-              <Text>{showCompleted ? "Skjul fullførte" : "Vis fullførte"}</Text>
-            </TouchableOpacity>
-            {showCompleted && completedIngredients.length > 0 && (
-              <View style={styles.list}>
-                {completedIngredients.map((ingredient, index) => (
+              {ingredients
+                .filter((ingredient) => !ingredient.completed)
+                .map((ingredient, index) => (
                   <TouchableOpacity
-                    onPress={() => handleUncompleteIngredient(ingredient)}
-                    key={`completed-${ingredient.name.toLowerCase()}|${index}`}
+                    onPress={() => updateIngredientStatus(ingredient, true)}
+                    key={`${ingredient.name.toLowerCase()}|${index}`}
                     style={styles.listItem}
                   >
                     <View style={styles.listText}>
@@ -233,11 +212,62 @@ const ShoppingList = () => {
                         {ingredient.name}
                       </Text>
                     </View>
-                    <View style={styles.checkedBox}>
-                      <Check />
-                    </View>
+                    <View style={styles.checkBox}></View>
                   </TouchableOpacity>
                 ))}
+            </View>
+            <TouchableOpacity
+              style={{ alignSelf: "center" }}
+              onPress={toggleCompletedList}
+            >
+              {showCompleted ? (
+                <View
+                  style={{ flexDirection: "row", gap: 4, alignItems: "center" }}
+                >
+                  <Text>Skjul fullførte</Text>
+                  <Invisible />
+                </View>
+              ) : (
+                <View
+                  style={{ flexDirection: "row", gap: 4, alignItems: "center" }}
+                >
+                  <Text>Vis fullførte</Text>
+                  <Visible />
+                </View>
+              )}
+            </TouchableOpacity>
+            {showCompleted && (
+              <View style={styles.list}>
+                {ingredients
+                  .filter((ingredient) => ingredient.completed)
+                  .map((ingredient, index) => (
+                    <TouchableOpacity
+                      onPress={() => updateIngredientStatus(ingredient, false)}
+                      key={`completed-${ingredient.name.toLowerCase()}|${index}`}
+                      style={styles.listItem}
+                    >
+                      <View style={styles.listText}>
+                        <View
+                          style={{ minWidth: 48, flexDirection: "row", gap: 4 }}
+                        >
+                          <Text>{ingredient.quantity}</Text>
+                          <Text>{ingredient.unit}</Text>
+                        </View>
+                        <Text
+                          style={{
+                            marginStart: 8,
+                            fontSize: 16,
+                            fontWeight: "500",
+                          }}
+                        >
+                          {ingredient.name}
+                        </Text>
+                      </View>
+                      <View style={styles.checkedBox}>
+                        <Check />
+                      </View>
+                    </TouchableOpacity>
+                  ))}
               </View>
             )}
           </ScrollView>
@@ -245,22 +275,28 @@ const ShoppingList = () => {
       </View>
       <View style={styles.inputContainer}>
         <View style={{ gap: 12 }}>
-          {/* Ingrediens input felt */}
           <TextInput
             placeholder="Ingrediens navn"
-            style={[placeholderStyles.simple, { flex: 3 }]}
+            value={ingredientName}
+            onChangeText={setIngredientName}
+            style={[placeholderStyles.simple]}
           />
           <View style={{ flexDirection: "row", gap: 12 }}>
             <TextInput
               placeholder="Antall"
+              value={quantity}
+              onChangeText={setQuantity}
               style={[placeholderStyles.simple, { width: 80 }]}
             />
             <TextInput
               placeholder="Enhet"
+              value={unit}
+              onChangeText={setUnit}
               style={[placeholderStyles.simple, { width: 80 }]}
             />
             <TouchableOpacity
               style={[styles.categoryBtn, { backgroundColor: "#185BF0" }]}
+              onPress={addIngredient}
             >
               <Text
                 style={[fonts.btnBody, { alignSelf: "center", color: "#FFF" }]}
@@ -269,6 +305,9 @@ const ShoppingList = () => {
               </Text>
             </TouchableOpacity>
           </View>
+          {error.length > 0 && (
+            <Text style={{ color: "red", textAlign: "center" }}>{error}</Text>
+          )}
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -338,5 +377,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 5,
     flex: 1,
+    justifyContent: "center",
   },
 });

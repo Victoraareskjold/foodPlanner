@@ -9,7 +9,7 @@ const Cancel = (props) => (
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <path
+    <Path
       d="M4.50537 11.9953L8.0007 8.49999L11.496 11.9953M11.496 5.00465L8.00004 8.49999L4.50537 5.00465"
       stroke="#F45944"
       stroke-linecap="round"

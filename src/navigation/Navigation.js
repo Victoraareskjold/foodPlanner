@@ -82,7 +82,7 @@ function TabGroup() {
       <Tab.Screen
         name="ProfileStackGroup"
         component={ProfileStackGroup}
-        options={{ tabBarLabel: "Handleliste" }}
+        options={{ tabBarLabel: "Din profil" }}
       />
     </Tab.Navigator>
   );

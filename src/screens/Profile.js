@@ -91,7 +91,7 @@ const Profile = () => {
       quality: 1,
     });
 
-    if (!result.cancelled && result.assets && result.assets.length > 0) {
+    if (!result.canceled && result.assets && result.assets.length > 0) {
       const uri = result.assets[0].uri;
       setImage(uri); // Lagrer URI-en i state
       uploadImage(uri); // Kaller uploadImage med valgt bilde-URI
