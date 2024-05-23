@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { db, auth } from "../../firebase";
 import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
+import { Picker } from "@react-native-picker/picker";
 import containerStyles from "../../styles/containerStyles";
 import fonts from "../../styles/fonts";
 import Check from "../../assets/SVGs/Check";
@@ -288,12 +289,28 @@ const ShoppingList = () => {
               onChangeText={setQuantity}
               style={[placeholderStyles.simple, { width: 80 }]}
             />
-            <TextInput
+            <Picker
+              itemStyle={{
+                fontSize: 14,
+              }}
+              style={[
+                placeholderStyles.simple,
+                {
+                  flex: 1,
+                  height: 49,
+                  justifyContent: "center",
+                  overflow: "scroll",
+                },
+              ]}
+              selectedValue={unit}
+              onValueChange={(itemValue, itemIndex) => setUnit(itemValue)}
               placeholder="Enhet"
-              value={unit}
-              onChangeText={setUnit}
-              style={[placeholderStyles.simple, { width: 80 }]}
-            />
+            >
+              <Picker.Item label="stk." value="stk." />
+              <Picker.Item label="L" value="L" />
+              <Picker.Item label="dl" value="dl" />
+              <Picker.Item label="kg" value="kg" />
+            </Picker>
             <TouchableOpacity
               style={[styles.categoryBtn, { backgroundColor: "#185BF0" }]}
               onPress={addIngredient}

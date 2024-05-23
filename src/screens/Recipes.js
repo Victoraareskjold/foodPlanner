@@ -56,7 +56,7 @@ export default function Recipes() {
       <View
         style={{
           paddingHorizontal: 20,
-          marginTop: 12,
+          marginTop: 82, //endre tilbake til 12!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           flexDirection: "column",
           justifyContent: "space-between",
           gap: 12,

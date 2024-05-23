@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { Picker } from "@react-native-picker/picker";
 
 import { db, auth } from "../../firebase";
 import { collection, addDoc, doc, getDoc } from "firebase/firestore";
@@ -218,12 +219,29 @@ const CreateRecipe = () => {
                 placeholder="Antall"
                 style={[placeholderStyles.simple, { width: 80 }]}
               />
-              <TextInput
-                value={unit}
-                onChangeText={setUnit}
+              <Picker
+                itemStyle={{
+                  fontSize: 14,
+                }}
+                style={[
+                  placeholderStyles.simple,
+                  {
+                    flex: 1,
+                    height: 49,
+                    justifyContent: "center",
+                    overflow: "scroll",
+                    fontSize: 8,
+                  },
+                ]}
+                selectedValue={unit}
+                onValueChange={(itemValue, itemIndex) => setUnit(itemValue)}
                 placeholder="Enhet"
-                style={[placeholderStyles.simple, { width: 80 }]}
-              />
+              >
+                <Picker.Item label="stk." value="stk." />
+                <Picker.Item label="L" value="L" />
+                <Picker.Item label="dl" value="dl" />
+                <Picker.Item label="kg" value="kg" />
+              </Picker>
               <TouchableOpacity
                 style={styles.categoryBtn}
                 onPress={addIngredient}
