@@ -18,4 +18,7 @@ export default StyleSheet.create({
   body: {
     fontSize: 14,
   },
+  body2: {
+    fontSize: 12,
+  },
 });

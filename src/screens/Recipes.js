@@ -5,6 +5,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   FlatList,
+  Image,
 } from "react-native";
 import { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
@@ -21,11 +22,16 @@ import SearchBar from "../components/SearchBar";
 import CategoryButtons from "../components/CategoryButtons";
 import buttons from "../../styles/buttons";
 import colors from "../../styles/colors";
+import images from "../../styles/images";
+import Timer from "../../assets/SVGs/Timer";
 
 export default function Recipes() {
   const navigation = useNavigation();
   const [recipeData, setRecipeData] = useState([]);
   const [userUID, setUserUID] = useState("");
+  const [image, setImage] = useState(null);
+
+  const numColumns = 2;
 
   useEffect(() => {
     const recipeCollectionRef = collection(db, "recipes");
@@ -56,7 +62,7 @@ export default function Recipes() {
       <View
         style={{
           paddingHorizontal: 20,
-          marginTop: 82, //endre tilbake til 12!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          marginTop: 12,
           flexDirection: "column",
           justifyContent: "space-between",
           gap: 12,
@@ -83,6 +89,9 @@ export default function Recipes() {
 
       <View style={[containerStyles.defaultContainer, { flex: 1 }]}>
         <FlatList
+          style={{ flex: 1 }}
+          columnWrapperStyle={{ justifyContent: "space-between", gap: 20 }}
+          numColumns={numColumns}
           data={recipeData}
           showsVerticalScrollIndicator={false}
           keyExtractor={(item) => item.id}
@@ -93,37 +102,39 @@ export default function Recipes() {
                 navigation.navigate("RecipeView", { recipeId: item.id })
               }
             >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "baseline",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Text style={fonts.subHeader}>{item.title}</Text>
-                <Text style={fonts.body}>{item.time} min</Text>
-              </View>
-
-              <View style={{ gap: 8 }}>
+              {image ? (
+                <Image source={{ uri: image }} style={[images.mealImage2]} />
+              ) : (
+                <Image
+                  source={require("../../assets/placeholderImage.png")}
+                  style={images.mealImage2}
+                />
+              )}
+              <View style={styles.mealInfo}>
+                <Text style={fonts.body}>{item.title}</Text>
                 <View
                   style={{
                     flexDirection: "row",
-                    flexWrap: "wrap",
+                    gap: 4,
+                    alignItems: "center",
                   }}
                 >
-                  {item.categories.map((category, index) => (
-                    <View key={index} style={buttons.categoryBtn}>
-                      <Text style={styles.categoryText}>{category}</Text>
-                    </View>
-                  ))}
+                  <Timer />
+                  <Text style={fonts.body2}>{item.time} min</Text>
                 </View>
-
-                <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-                  {item.countries.map((country, index) => (
-                    <View key={index} style={buttons.categoryBtn}>
-                      <Text style={styles.countryText}>{country}</Text>
-                    </View>
-                  ))}
+                <View style={{ gap: 8 }}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    {item.categories.map((category, index) => (
+                      <View key={index} style={buttons.categoryBtn}>
+                        <Text style={styles.categoryText}>{category}</Text>
+                      </View>
+                    ))}
+                  </View>
                 </View>
               </View>
             </TouchableOpacity>
@@ -159,11 +170,11 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     color: colors.blue,
-    ...fonts.body,
+    ...fonts.body2,
   },
   countryText: {
     color: colors.green,
-    ...fonts.body,
+    ...fonts.body2,
   },
   categoryContainer: {
     backgroundColor: colors.lightBlue,
@@ -180,10 +191,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   card: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    overflow: "hidden",
+    flex: 1,
     borderRadius: 5,
-    backgroundColor: colors.white,
-    gap: 12,
+    backgroundColor: "#FFF",
+  },
+  mealInfo: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    gap: 6,
   },
 });

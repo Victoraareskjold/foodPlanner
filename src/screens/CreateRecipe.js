@@ -21,6 +21,7 @@ import placeholderStyles from "../../styles/placeholderStyles";
 import fonts from "../../styles/fonts";
 import buttons from "../../styles/buttons";
 import colors from "../../styles/colors";
+import { setPriority } from "firebase/database";
 
 const CreateRecipe = () => {
   const navigation = useNavigation();
@@ -29,10 +30,11 @@ const CreateRecipe = () => {
   const [link, setLink] = useState("");
   const [time, setTime] = useState("");
 
-  const { selectedCategories, selectedCountries } = route.params ?? {};
+  const { selectedCategories } = route.params ?? {};
   const [ingredients, setIngredients] = useState([]);
   const [ingredientName, setIngredientName] = useState("");
   const [quantity, setQuantity] = useState("");
+  const [portions, setPortions] = useState("");
   const [unit, setUnit] = useState("");
   const ingredientRefs = useRef([]);
 
@@ -108,8 +110,8 @@ const CreateRecipe = () => {
       link,
       time,
       ingredients,
+      portions,
       categories: selectedCategories,
-      countries: selectedCountries,
       familyId: userFamilyId,
     };
 
@@ -133,7 +135,7 @@ const CreateRecipe = () => {
         <SafeAreaView />
         <View>
           <Image
-            source={require("../../assets/vedBilde.png")}
+            source={require("../../assets/placeholderImage.png")}
             style={{ height: 200, width: "100%" }}
           />
         </View>
@@ -149,13 +151,19 @@ const CreateRecipe = () => {
             </View>
             <View style={{ gap: 12, flexDirection: "row" }}>
               <TextInput
-                placeholder="Link til oppskrift"
+                placeholder="Nettside link"
                 value={link}
                 onChangeText={setLink}
                 style={[placeholderStyles.simple, { flex: 1 }]}
               />
               <TextInput
-                placeholder="tid"
+                placeholder="Porsjoner"
+                value={portions}
+                onChangeText={setPortions}
+                style={[placeholderStyles.simple, { minWidth: 96 }]}
+              />
+              <TextInput
+                placeholder="Tid"
                 value={time}
                 onChangeText={setTime}
                 style={[placeholderStyles.simple, { minWidth: 96 }]}
@@ -174,17 +182,6 @@ const CreateRecipe = () => {
                   {selectedCategories.map((category, index) => (
                     <TouchableOpacity key={index} style={buttons.categoryBtn}>
                       <Text>{category}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-
-              {/* Tilsvarende kan du vise valgte land hvis det er nødvendig */}
-              {selectedCountries && selectedCountries.length > 0 && (
-                <View style={{ flexDirection: "row", gap: 8 }}>
-                  {selectedCountries.map((country, index) => (
-                    <TouchableOpacity key={index} style={buttons.categoryBtn}>
-                      <Text>{country}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -241,6 +238,7 @@ const CreateRecipe = () => {
                 <Picker.Item label="L" value="L" />
                 <Picker.Item label="dl" value="dl" />
                 <Picker.Item label="kg" value="kg" />
+                <Picker.Item label="g" value="g" />
               </Picker>
               <TouchableOpacity
                 style={styles.categoryBtn}

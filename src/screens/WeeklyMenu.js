@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   Modal,
   ScrollView,
+  Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { auth, db } from "../../firebase";
@@ -19,18 +20,23 @@ import {
   getDoc,
   onSnapshot,
   setDoc,
+  deleteDoc,
 } from "firebase/firestore";
+import { useMemo } from "react";
 import fonts from "../../styles/fonts";
 import containerStyles from "../../styles/containerStyles";
 import colors from "../../styles/colors";
 import Check from "../../assets/SVGs/Check";
+import images from "../../styles/images";
+import Timer from "../../assets/SVGs/Timer";
+import Trash from "../../assets/SVGs/Trash";
 
 const generateWeekDates = () => {
   let dates = [];
   const today = new Date();
   const startOfWeek = new Date(today);
-  const dayOfWeek = startOfWeek.getDay(); // Søndag = 0, Mandag = 1, ..., Lørdag = 6
-  const diff = startOfWeek.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Finne mandagen i denne uken
+  const dayOfWeek = startOfWeek.getDay();
+  const diff = startOfWeek.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
 
   startOfWeek.setDate(diff);
 
@@ -43,14 +49,14 @@ const generateWeekDates = () => {
         day: "2-digit",
         month: "long",
       })
-    ); // Lagrer datoer i ønsket format
+    );
   }
   return dates;
 };
 
 export default function WeeklyMenu() {
   const navigation = useNavigation();
-  const weekDates = generateWeekDates();
+  const weekDates = useMemo(() => generateWeekDates(), []);
   const [familyId, setFamilyId] = useState(null);
   const [recipesForWeek, setRecipesForWeek] = useState({});
   const [ingredients, setIngredients] = useState([]);
@@ -58,6 +64,21 @@ export default function WeeklyMenu() {
   const [completedIngredients, setCompletedIngredients] = useState([]);
   const [showCompleted, setShowCompleted] = useState(false);
   const [shoppingList, setShoppingList] = useState([]);
+  const [image, setImage] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (auth.currentUser) {
+        const userDocRef = doc(db, "users", auth.currentUser.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          setFamilyId(userDocSnap.data().familyId);
+        }
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const getWeekId = () => {
     const today = new Date();
@@ -70,54 +91,54 @@ export default function WeeklyMenu() {
   };
 
   useEffect(() => {
-    if (auth.currentUser) {
-      const userDocRef = doc(db, "users", auth.currentUser.uid);
-      getDoc(userDocRef).then((docSnap) => {
-        if (docSnap.exists()) {
-          setFamilyId(docSnap.data().familyId);
-        }
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!familyId) return;
-
-    const unsubscribes = [];
-
-    weekDates.forEach((date) => {
-      const docRef = doc(db, "families", familyId, "weekMenu", date);
-
-      const unsubscribe = onSnapshot(
-        docRef,
-        (doc) => {
-          if (doc.exists()) {
-            setRecipesForWeek((prevRecipes) => ({
-              ...prevRecipes,
-              [date]: doc.data().recipeTitle,
-            }));
+    console.log("Family ID:", familyId);
+    console.log("Week Dates:", weekDates);
+    if (familyId) {
+      console.log("Subscribing to week dates changes.");
+      const unsubscribes = weekDates.map((date) => {
+        const docRef = doc(db, "families", familyId, "weekMenu", date);
+        return onSnapshot(docRef, (docSnapshot) => {
+          if (docSnapshot.exists()) {
+            const recipeId = docSnapshot.data().recipeId;
+            console.log(`Recipe ID for ${date}:`, recipeId);
+            fetchRecipeDetails(recipeId, date);
+          } else {
+            console.log(`No document found for ${date}`);
           }
-        },
-        (error) =>
-          console.error(`Error fetching recipe for date ${date}`, error)
-      );
+        });
+      });
 
-      unsubscribes.push(unsubscribe);
-    });
+      return () => {
+        unsubscribes.forEach((unsubscribe) => unsubscribe());
+        console.log("Unsubscribed from week dates changes.");
+      };
+    }
+  }, [familyId, weekDates]);
 
-    return () => {
-      unsubscribes.forEach((unsubscribe) => unsubscribe());
-    };
-  }, [familyId]);
+  const fetchRecipeDetails = async (recipeId, date) => {
+    if (!recipeId) return;
+    const recipeDocRef = doc(db, "recipes", recipeId);
+    const recipeDocSnap = await getDoc(recipeDocRef);
+    if (recipeDocSnap.exists()) {
+      setRecipesForWeek((prevRecipes) => ({
+        ...prevRecipes,
+        [date]: recipeDocSnap.data(),
+      }));
+      setImage(recipeDocSnap.data().image);
+    } else {
+      console.error(`No recipe found with id ${recipeId}`);
+    }
+  };
 
   const fetchRecipesForWeek = async () => {
+    console.log("Fetching recipes for the week...");
     if (auth.currentUser && familyId) {
       const weekMenuRef = collection(db, "families", familyId, "weekMenu");
       const weekMenuSnap = await getDocs(weekMenuRef);
 
       let recipeCounts = {};
-      weekMenuSnap.forEach((doc) => {
-        const data = doc.data();
+      weekMenuSnap.forEach((docSnapshot) => {
+        const data = docSnapshot.data();
         if (weekDates.includes(data.date)) {
           recipeCounts[data.recipeId] = (recipeCounts[data.recipeId] || 0) + 1;
         }
@@ -130,10 +151,10 @@ export default function WeeklyMenu() {
       const recipesSnapshot = await getDocs(recipesQuery);
 
       let ingredientMap = {};
-      recipesSnapshot.forEach((doc) => {
-        const count = recipeCounts[doc.id] || 0;
+      recipesSnapshot.forEach((docSnapshot) => {
+        const count = recipeCounts[docSnapshot.id] || 0;
         if (count > 0) {
-          doc.data().ingredients?.forEach((ingredient) => {
+          docSnapshot.data().ingredients?.forEach((ingredient) => {
             if (ingredient.name && ingredient.name.length > 1) {
               const key = `${ingredient.name.toLowerCase()}|${ingredient.unit}`;
               const quantityToAdd = parseFloat(ingredient.quantity) * count;
@@ -244,7 +265,7 @@ export default function WeeklyMenu() {
     <View style={styles.container}>
       {/* Modal */}
       <Modal
-        animationType="slide"
+        animationType="none"
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => setModalVisible(!modalVisible)}
@@ -266,14 +287,14 @@ export default function WeeklyMenu() {
                 style={[
                   styles.button,
                   styles.buttonClose,
-                  { alignSelf: "flex-end" },
+                  { alignSelf: "flex-end", backgroundColor: colors.lightGrey },
                 ]}
                 onPress={() => setModalVisible(!modalVisible)}
               >
                 <Text
                   style={[
                     fonts.btnBody,
-                    { alignSelf: "center", color: "#FFF" },
+                    { alignSelf: "center", color: colors.defaultLight },
                   ]}
                 >
                   Lukk
@@ -368,13 +389,61 @@ export default function WeeklyMenu() {
       <View style={styles.header}>
         <Text style={fonts.header}>Ukes meny</Text>
       </View>
-      <View style={[containerStyles.defaultContainer, { flex: 1, gap: 20 }]}>
+
+      {/* Week menu list */}
+      <ScrollView
+        style={[containerStyles.defaultContainer, { flex: 1, gap: 20 }]}
+      >
         <View>
           {weekDates.map((date, index) => (
             <View key={index} style={styles.dayContainer}>
               <Text style={styles.dayText}>{date}</Text>
               {recipesForWeek[date] ? (
-                <Text style={styles.recipeText}>{recipesForWeek[date]}</Text>
+                <View style={styles.mealContainer}>
+                  {image ? (
+                    <Image source={{ uri: image }} style={[images.mealImage]} />
+                  ) : (
+                    <Image
+                      source={require("../../assets/vedBilde.png")}
+                      style={images.mealImage}
+                    />
+                  )}
+                  <View style={styles.mealInfo}>
+                    <View style={{ justifyContent: "center", gap: 4 }}>
+                      <Text style={styles.recipeText}>
+                        {recipesForWeek[date].title}
+                      </Text>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          gap: 4,
+                          alignItems: "center",
+                        }}
+                      >
+                        <Timer />
+                        <Text style={styles.recipeTime}>
+                          {recipesForWeek[date].time} min
+                        </Text>
+                      </View>
+
+                      {/* <Text style={styles.recipeText}>
+                    {recipesForWeek[date].categories.join(", ")}
+                  </Text> */}
+                    </View>
+                    <View style={{ justifyContent: "center" }}>
+                      <TouchableOpacity
+                        style={{
+                          justifyContent: "center",
+                          width: 32,
+                          height: 32,
+                          alignItems: "center",
+                        }}
+                      >
+                        <Trash />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
               ) : (
                 <TouchableOpacity
                   style={styles.addButton}
@@ -396,7 +465,7 @@ export default function WeeklyMenu() {
             Fullfør
           </Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -415,6 +484,7 @@ const styles = StyleSheet.create({
   },
   dayContainer: {
     paddingVertical: 8,
+    gap: 10,
   },
   dayText: {
     fontSize: 16,
@@ -431,18 +501,23 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   recipeText: {
-    fontSize: 18,
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  recipeTime: {
+    fontSize: 12,
   },
   modalView: {
     backgroundColor: "rgba(0, 0, 0, .4)",
     flex: 1,
-    padding: 32,
+    padding: 20,
+    paddingTop: 64,
   },
   modalContainer: {
     backgroundColor: "white",
     borderRadius: 5,
     padding: 12,
-    gap: 32,
+    gap: 20,
   },
   list: {
     gap: 8,
@@ -485,5 +560,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderRadius: 5,
+  },
+  mealContainer: {
+    backgroundColor: colors.white,
+    flexDirection: "row",
+    borderRadius: 5,
+    overflow: "hidden",
+  },
+  mealInfo: {
+    paddingHorizontal: 12,
+    justifyContent: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    flex: 1,
   },
 });

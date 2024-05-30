@@ -11,7 +11,7 @@ import {
   TextInput,
 } from "react-native";
 import { db, auth } from "../../firebase";
-import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
 import { Picker } from "@react-native-picker/picker";
 import containerStyles from "../../styles/containerStyles";
 import fonts from "../../styles/fonts";
@@ -19,6 +19,9 @@ import Check from "../../assets/SVGs/Check";
 import Visible from "../../assets/SVGs/Visible";
 import Invisible from "../../assets/SVGs/Invisible";
 import placeholderStyles from "../../styles/placeholderStyles";
+import { getCategoryForIngredient } from "../components/IngredientCategories";
+import Swipeable from "react-native-gesture-handler/Swipeable";
+import Trash from "../../assets/SVGs/Trash";
 
 const getWeekId = () => {
   const today = new Date();
@@ -62,27 +65,22 @@ const ShoppingList = () => {
           weekId
         );
 
-        const unsubscribe = onSnapshot(
-          shoppingListRef,
-          (doc) => {
-            if (doc.exists()) {
-              const data = doc.data();
-              setIngredients(data.ingredients);
-            } else {
-              console.log("Shopping list document does not exist");
-            }
-          },
-          (error) => {
-            console.log("Error fetching shopping list document:", error);
-          }
-        );
-
-        return () => unsubscribe();
+        const shoppingListSnap = await getDoc(shoppingListRef);
+        if (shoppingListSnap.exists()) {
+          const data = shoppingListSnap.data();
+          setIngredients(data.ingredients);
+        } else {
+          console.log("Shopping list document does not exist");
+        }
       };
 
       fetchShoppingList();
     }
   }, [familyId]);
+
+  useEffect(() => {
+    console.log("Ingredients updated:", ingredients);
+  }, [ingredients]);
 
   const updateIngredientStatus = async (ingredient, completed) => {
     if (familyId) {
@@ -171,6 +169,76 @@ const ShoppingList = () => {
     setShowCompleted(!showCompleted);
   };
 
+  const categorizedIngredients = () => {
+    const categories = {
+      "🥩 Kjøtt": [],
+      "🥛 Meieri": [],
+      "🥐 Bakevarer": [],
+      "🧂 Krydder": [],
+      "🥕 Grønnsaker": [],
+      "🍏 Frukt": [],
+      "🍝 Ferdigmat": [],
+      "🍲 Hermetikk": [],
+      "🍞 Brødvarer": [],
+      "🧀 Pålegg": [],
+      "🧊 Frysevarer": [],
+      Annet: [],
+    };
+
+    ingredients.forEach((ingredient) => {
+      const category = getCategoryForIngredient(ingredient.name);
+      categories[category].push(ingredient);
+    });
+
+    return categories;
+  };
+
+  const renderIngredients = (ingredientList) => {
+    return ingredientList.map((ingredient, index) => (
+      <Swipeable renderRightActions={rightSwipeActions}>
+        <TouchableOpacity
+          onPress={() =>
+            updateIngredientStatus(ingredient, !ingredient.completed)
+          }
+          key={`${ingredient.name.toLowerCase()}|${index}`}
+          style={styles.listItem}
+        >
+          <View style={styles.listText}>
+            <View style={{ minWidth: 48, flexDirection: "row", gap: 4 }}>
+              <Text>{ingredient.quantity}</Text>
+              <Text>{ingredient.unit}</Text>
+            </View>
+            <Text style={{ marginStart: 8, fontSize: 14, fontWeight: "500" }}>
+              {ingredient.name}
+            </Text>
+          </View>
+          <View
+            style={ingredient.completed ? styles.checkedBox : styles.checkBox}
+          >
+            {ingredient.completed && <Check />}
+          </View>
+        </TouchableOpacity>
+      </Swipeable>
+    ));
+  };
+
+  const ingredientsByCategory = categorizedIngredients();
+
+  const rightSwipeActions = (ingredient) => {
+    return (
+      <TouchableOpacity
+        style={{
+          borderRadius: 5,
+          justifyContent: "center",
+          alignItems: "center",
+          paddingHorizontal: 16,
+        }}
+      >
+        <Trash />
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -187,36 +255,23 @@ const ShoppingList = () => {
             contentContainerStyle={{ gap: 20 }}
             style={{ overflow: "visible", zIndex: 0 }}
           >
-            <View style={styles.list}>
-              {ingredients
-                .filter((ingredient) => !ingredient.completed)
-                .map((ingredient, index) => (
-                  <TouchableOpacity
-                    onPress={() => updateIngredientStatus(ingredient, true)}
-                    key={`${ingredient.name.toLowerCase()}|${index}`}
-                    style={styles.listItem}
-                  >
-                    <View style={styles.listText}>
-                      <View
-                        style={{ minWidth: 48, flexDirection: "row", gap: 4 }}
-                      >
-                        <Text>{ingredient.quantity}</Text>
-                        <Text>{ingredient.unit}</Text>
-                      </View>
-                      <Text
-                        style={{
-                          marginStart: 8,
-                          fontSize: 16,
-                          fontWeight: "500",
-                        }}
-                      >
-                        {ingredient.name}
-                      </Text>
+            {Object.entries(ingredientsByCategory).map(
+              ([category, ingredients]) =>
+                ingredients.length > 0 &&
+                !ingredients.every((ingredient) => ingredient.completed) && (
+                  <View key={category}>
+                    <Text style={styles.categoryHeader}>{category}</Text>
+                    <View style={styles.list}>
+                      {renderIngredients(
+                        ingredients.filter(
+                          (ingredient) => !ingredient.completed
+                        )
+                      )}
                     </View>
-                    <View style={styles.checkBox}></View>
-                  </TouchableOpacity>
-                ))}
-            </View>
+                  </View>
+                )
+            )}
+
             <TouchableOpacity
               style={{ alignSelf: "center" }}
               onPress={toggleCompletedList}
@@ -225,50 +280,23 @@ const ShoppingList = () => {
                 <View
                   style={{ flexDirection: "row", gap: 4, alignItems: "center" }}
                 >
-                  <Text>Skjul fullførte</Text>
+                  <Text style={fonts.body2}>Skjul fullførte</Text>
                   <Invisible />
                 </View>
               ) : (
                 <View
                   style={{ flexDirection: "row", gap: 4, alignItems: "center" }}
                 >
-                  <Text>Vis fullførte</Text>
+                  <Text style={fonts.body2}>Vis fullførte</Text>
                   <Visible />
                 </View>
               )}
             </TouchableOpacity>
             {showCompleted && (
               <View style={styles.list}>
-                {ingredients
-                  .filter((ingredient) => ingredient.completed)
-                  .map((ingredient, index) => (
-                    <TouchableOpacity
-                      onPress={() => updateIngredientStatus(ingredient, false)}
-                      key={`completed-${ingredient.name.toLowerCase()}|${index}`}
-                      style={styles.listItem}
-                    >
-                      <View style={styles.listText}>
-                        <View
-                          style={{ minWidth: 48, flexDirection: "row", gap: 4 }}
-                        >
-                          <Text>{ingredient.quantity}</Text>
-                          <Text>{ingredient.unit}</Text>
-                        </View>
-                        <Text
-                          style={{
-                            marginStart: 8,
-                            fontSize: 16,
-                            fontWeight: "500",
-                          }}
-                        >
-                          {ingredient.name}
-                        </Text>
-                      </View>
-                      <View style={styles.checkedBox}>
-                        <Check />
-                      </View>
-                    </TouchableOpacity>
-                  ))}
+                {renderIngredients(
+                  ingredients.filter((ingredient) => ingredient.completed)
+                )}
               </View>
             )}
           </ScrollView>
@@ -310,6 +338,7 @@ const ShoppingList = () => {
               <Picker.Item label="L" value="L" />
               <Picker.Item label="dl" value="dl" />
               <Picker.Item label="kg" value="kg" />
+              <Picker.Item label="g" value="g" />
             </Picker>
             <TouchableOpacity
               style={[styles.categoryBtn, { backgroundColor: "#185BF0" }]}
@@ -395,5 +424,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     flex: 1,
     justifyContent: "center",
+  },
+  categoryHeader: {
+    color: "#C3C3C3",
   },
 });

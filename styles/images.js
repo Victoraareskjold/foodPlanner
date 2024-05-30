@@ -6,4 +6,12 @@ export default StyleSheet.create({
     height: 40,
     width: 40,
   },
+  mealImage: {
+    width: 112,
+    height: 72,
+  },
+  mealImage2: {
+    width: "100%",
+    height: 80,
+  },
 });

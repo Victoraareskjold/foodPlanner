@@ -13,13 +13,11 @@ import fonts from "../../styles/fonts";
 import buttons from "../../styles/buttons";
 
 const categories = ["Kjøtt", "Kylling", "Fisk", "Vegetar"];
-const countries = ["Asian", "American", "Norwegian", "Indisk", "Italiensk"];
 
 const SelectCategory = () => {
   const navigation = useNavigation();
 
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedCountries, setSelectedCountries] = useState([]);
 
   const toggleCategory = (category) => {
     if (selectedCategories.includes(category)) {
@@ -28,14 +26,6 @@ const SelectCategory = () => {
       );
     } else {
       setSelectedCategories([...selectedCategories, category]);
-    }
-  };
-
-  const toggleCountry = (country) => {
-    if (selectedCountries.includes(country)) {
-      setSelectedCountries(selectedCountries.filter((cnt) => cnt !== country));
-    } else {
-      setSelectedCountries([...selectedCountries, country]);
     }
   };
 
@@ -119,10 +109,8 @@ const SelectCategory = () => {
 
         <TouchableOpacity
           onPress={() => {
-            console.log(selectedCategories, selectedCountries);
             navigation.navigate("CreateRecipe", {
               selectedCategories: selectedCategories,
-              selectedCountries: selectedCountries,
             });
           }}
           style={{
