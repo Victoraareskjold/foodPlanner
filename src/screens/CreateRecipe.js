@@ -60,6 +60,7 @@ const CreateRecipe = () => {
       setIngredients([...ingredients, newIngredient]);
       // Nullstiller inputfeltene
       setIngredientName("");
+      setQuantity("");
       /* setQuantity("");
       setUnit(""); */
     } else {

@@ -38,8 +38,8 @@ const ShoppingList = () => {
   const [showCompleted, setShowCompleted] = useState(false);
   const [familyId, setFamilyId] = useState(null);
   const [ingredientName, setIngredientName] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [unit, setUnit] = useState("");
+  const [quantity, setQuantity] = useState("1");
+  const [unit, setUnit] = useState("stk.");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -156,8 +156,6 @@ const ShoppingList = () => {
 
         setIngredients(updatedIngredients);
         setIngredientName("");
-        setQuantity("");
-        setUnit("");
         setError("");
       }
     } else {
