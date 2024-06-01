@@ -134,9 +134,7 @@ export default function AddMeal({ route, navigation }) {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
-            onPress={() =>
-              navigation.navigate("RecipeView", { recipeId: item.id })
-            }
+            onPress={() => handleSaveRecipe(item)}
           >
             {image ? (
               <Image source={{ uri: image }} style={[images.mealImage2]} />

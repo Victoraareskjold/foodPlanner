@@ -394,7 +394,7 @@ export default function WeeklyMenu() {
       <ScrollView
         style={[containerStyles.defaultContainer, { flex: 1, gap: 20 }]}
       >
-        <View>
+        <View style={{ paddingBottom: 32 }}>
           {weekDates.map((date, index) => (
             <View key={index} style={styles.dayContainer}>
               <Text style={styles.dayText}>{date}</Text>
@@ -457,6 +457,8 @@ export default function WeeklyMenu() {
             </View>
           ))}
         </View>
+      </ScrollView>
+      <View style={styles.inputContainer}>
         <TouchableOpacity
           style={styles.buttonClose}
           onPress={addToShoppingList}
@@ -465,7 +467,7 @@ export default function WeeklyMenu() {
             Fullfør
           </Text>
         </TouchableOpacity>
-      </ScrollView>
+      </View>
     </View>
   );
 }
@@ -573,5 +575,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     flex: 1,
+  },
+  inputContainer: {
+    backgroundColor: "#FCFCFC",
+    paddingHorizontal: 20,
+    paddingBottom: 12,
   },
 });

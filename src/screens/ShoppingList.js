@@ -250,7 +250,7 @@ const ShoppingList = () => {
         </View>
         <View style={[containerStyles.defaultContainer, { gap: 32 }]}>
           <ScrollView
-            contentContainerStyle={{ gap: 20 }}
+            contentContainerStyle={{ gap: 20, paddingBottom: 108 }}
             style={{ overflow: "visible", zIndex: 0 }}
           >
             {Object.entries(ingredientsByCategory).map(

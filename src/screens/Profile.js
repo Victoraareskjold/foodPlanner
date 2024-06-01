@@ -16,18 +16,15 @@ import {
   updateDoc,
   collection,
   addDoc,
-  getDocs,
-  query,
-  where,
   arrayUnion,
 } from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { v4 as uuidv4 } from "uuid";
 
 import fonts from "../../styles/fonts";
 import containerStyles from "../../styles/containerStyles";
 import colors from "../../styles/colors";
+import placeholderStyles from "../../styles/placeholderStyles";
 
 const Profile = () => {
   const [userProfile, setUserProfile] = useState(null);
@@ -38,6 +35,7 @@ const Profile = () => {
 
   const [familyId, setFamilyId] = useState(null); // Holder på familie IDen
   const [familyData, setFamilyData] = useState(null); // Holder på familiens navn og kode
+  const [familyMembers, setFamilyMembers] = useState([]); // Holder på familiemedlemmers profiler
 
   const [createFamilyModalVisible, setCreateFamilyModalVisible] =
     useState(false);
@@ -79,7 +77,23 @@ const Profile = () => {
     const familyDocSnap = await getDoc(familyDocRef);
 
     if (familyDocSnap.exists()) {
-      setFamilyData(familyDocSnap.data());
+      const familyData = familyDocSnap.data();
+      setFamilyData(familyData);
+
+      // Hent profilinformasjonen til hvert familiemedlem
+      const members = await Promise.all(
+        familyData.members.map(async (memberId) => {
+          const memberDocRef = doc(db, "users", memberId);
+          const memberDocSnap = await getDoc(memberDocRef);
+          if (memberDocSnap.exists()) {
+            return { id: memberId, ...memberDocSnap.data() };
+          } else {
+            return null;
+          }
+        })
+      );
+
+      setFamilyMembers(members.filter((member) => member !== null));
     }
   };
 
@@ -121,9 +135,7 @@ const Profile = () => {
     }
   };
 
-  // Funksjon for å opprette familie
   const handleCreateFamily = async () => {
-    const uniqueFamilyCode = uuidv4(); // Genererer en unik kode for familien
     try {
       if (familyName.trim() === "") {
         alert("Vennligst fyll inn et familienavn");
@@ -133,7 +145,6 @@ const Profile = () => {
       const docRef = await addDoc(collection(db, "families"), {
         name: familyName, // Bruker nå 'familyName' fra staten
         members: [auth.currentUser.uid],
-        familyCode: uniqueFamilyCode, // Lagrer den unike koden
       });
 
       // Oppdater brukerens profil med familyId
@@ -141,7 +152,7 @@ const Profile = () => {
       await updateDoc(userDocRef, { familyId: docRef.id });
 
       setFamilyId(docRef.id); // Oppdaterer state
-      setFamilyData({ name: familyName, familyCode: uniqueFamilyCode }); // Setter familiens data
+      setFamilyData({ name: familyName, familyId: docRef.id }); // Setter familiens data
       setCreateFamilyModalVisible(false); // Lukker modalen etter vellykket opprettelse
     } catch (error) {
       console.error("Error adding family: ", error);
@@ -151,34 +162,30 @@ const Profile = () => {
   // Funksjon for å bli med i en familie
   const handleJoinFamily = async () => {
     try {
-      // Anta at familiene er lagret i en samling kalt 'families' og hver familie har en 'familyCode'
-      const familiesRef = collection(db, "families");
-      const querySnapshot = await getDocs(
-        query(familiesRef, where("familyCode", "==", joinFamilyCode))
-      );
+      const familyDocRef = doc(db, "families", joinFamilyCode);
+      const familyDocSnap = await getDoc(familyDocRef);
 
-      // Sjekk om det finnes noen familie med den koden
-      if (!querySnapshot.empty) {
-        const familyDoc = querySnapshot.docs[0]; // Ta den første matchende familien
-        const familyId = familyDoc.id;
+      // Sjekk om det finnes en familie med den IDen
+      if (familyDocSnap.exists()) {
+        const familyData = familyDocSnap.data();
 
         // Legg til brukeren i familiens medlemsliste
-        await updateDoc(doc(db, "families", familyId), {
+        await updateDoc(familyDocRef, {
           members: arrayUnion(auth.currentUser.uid),
         });
 
         // Oppdater brukerens profil med familyId
         await updateDoc(doc(db, "users", auth.currentUser.uid), {
-          familyId: familyId,
+          familyId: joinFamilyCode,
         });
 
-        setFamilyId(familyId); // Oppdaterer state
-        setFamilyData({ ...familyDoc.data(), id: familyId }); // Oppdaterer familiens data
+        setFamilyId(joinFamilyCode); // Oppdaterer state
+        setFamilyData({ ...familyData, id: joinFamilyCode }); // Oppdaterer familiens data
         setJoinFamilyModalVisible(false); // Lukker modalen
 
         alert("Du har blitt lagt til i familien!");
       } else {
-        alert("Ingen familie med den koden ble funnet.");
+        alert("Ingen familie med den ID-en ble funnet.");
       }
     } catch (error) {
       console.error("Feil ved å bli med i familie:", error);
@@ -273,13 +280,13 @@ const Profile = () => {
             {image ? (
               <Image
                 source={{ uri: userProfile.profileImageUrl }}
-                style={{ width: 200, height: 200, borderRadius: 100 }}
+                style={{ width: 40, height: 40, borderRadius: 100 }}
                 onPress={pickImage}
               />
             ) : (
               <Image
                 source={require("../../assets/user-1.png")}
-                style={{ width: 200, height: 200, borderRadius: 100 }}
+                style={{ width: 40, height: 40, borderRadius: 100 }}
                 onPress={pickImage}
               />
             )}
@@ -316,10 +323,44 @@ const Profile = () => {
         {/* Hvis brukeren er en del av en familie, vis familiens navn og kode */}
         {familyId && familyData && (
           <View style={styles.familyInfoContainer}>
-            <Text>Familienavn:</Text>
-            <Text style={styles.familyText}>{familyData.name}</Text>
-            <Text>Familiekode:</Text>
-            <Text style={styles.familyText}>{familyData.familyCode}</Text>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <View style={{ flex: 1 }}>
+                <Text style={fonts.btnBody}>Familienavn:</Text>
+                <Text style={[placeholderStyles.simple, fonts.body2]}>
+                  {familyData.name}
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={fonts.btnBody}>Familiekode:</Text>
+                <Text style={[placeholderStyles.simple, fonts.body2]}>
+                  {familyId}
+                </Text>
+              </View>
+            </View>
+            <View>
+              <Text style={fonts.btnBody}>Medlemmer:</Text>
+              {familyMembers.map((member) => (
+                <View
+                  key={member.id}
+                  style={[
+                    placeholderStyles.simple,
+                    { flexDirection: "row", alignItems: "center", gap: 8 },
+                  ]}
+                >
+                  <Image
+                    source={{
+                      uri:
+                        member.profileImageUrl ||
+                        require("../../assets/user-1.png"),
+                    }}
+                    style={styles.memberImage}
+                  />
+                  <Text style={fonts.body2}>
+                    {member.firstName} {member.lastName}
+                  </Text>
+                </View>
+              ))}
+            </View>
           </View>
         )}
 
@@ -378,6 +419,7 @@ const Profile = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#FCFCFC",
   },
   buttonContainer: {
     flexDirection: "row",
@@ -420,6 +462,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     fontWeight: "400",
+  },
+  familyInfoContainer: {
+    gap: 12,
+  },
+  memberImage: {
+    height: 40,
+    width: 40,
+    borderRadius: 100,
   },
 });
 
