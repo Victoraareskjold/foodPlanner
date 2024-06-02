@@ -2,7 +2,6 @@ import colors from "./colors";
 
 export default {
   defaultContainer: {
-    paddingHorizontal: 20,
     marginTop: 32,
     backgroundColor: "FCFCFC",
   },

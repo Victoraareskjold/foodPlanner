@@ -56,21 +56,27 @@ const ShoppingList = () => {
   useEffect(() => {
     if (familyId) {
       const fetchShoppingList = async () => {
-        const weekId = getWeekId();
-        const shoppingListRef = doc(
-          db,
-          "families",
-          familyId,
-          "shoppingLists",
-          weekId
-        );
+        try {
+          const weekId = getWeekId();
+          const shoppingListRef = doc(
+            db,
+            "families",
+            familyId,
+            "shoppingLists",
+            weekId
+          );
 
-        const shoppingListSnap = await getDoc(shoppingListRef);
-        if (shoppingListSnap.exists()) {
-          const data = shoppingListSnap.data();
-          setIngredients(data.ingredients);
-        } else {
-          console.log("Shopping list document does not exist");
+          const shoppingListSnap = await getDoc(shoppingListRef);
+          if (shoppingListSnap.exists()) {
+            const data = shoppingListSnap.data();
+            console.log("Fetched shopping list data:", data); // Log fetched data
+            setIngredients(data.ingredients || []); // Default to empty array
+          } else {
+            console.log("Shopping list document does not exist");
+            setIngredients([]); // Default to empty array if document doesn't exist
+          }
+        } catch (error) {
+          console.error("Error fetching shopping list:", error);
         }
       };
 
@@ -185,6 +191,9 @@ const ShoppingList = () => {
 
     ingredients.forEach((ingredient) => {
       const category = getCategoryForIngredient(ingredient.name);
+      if (!categories[category]) {
+        categories[category] = []; // Initialize the category if it doesn't exist
+      }
       categories[category].push(ingredient);
     });
 
@@ -244,13 +253,17 @@ const ShoppingList = () => {
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
     >
       <View style={styles.container}>
-        <SafeAreaView style={{ backgroundColor: "#FFF" }} />
+        <SafeAreaView style={{ backgroundColor: "#FFF", zIndex: 10 }} />
         <View style={styles.header}>
           <Text style={fonts.header}>Handleliste</Text>
         </View>
         <View style={[containerStyles.defaultContainer, { gap: 32 }]}>
           <ScrollView
-            contentContainerStyle={{ gap: 20, paddingBottom: 108 }}
+            contentContainerStyle={{
+              gap: 20,
+              paddingBottom: 108,
+              paddingHorizontal: 20,
+            }}
             style={{ overflow: "visible", zIndex: 0 }}
           >
             {Object.entries(ingredientsByCategory).map(

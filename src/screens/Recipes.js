@@ -90,7 +90,10 @@ export default function Recipes() {
       <View style={[containerStyles.defaultContainer, { flex: 1 }]}>
         <FlatList
           style={{ flex: 1 }}
-          columnWrapperStyle={{ justifyContent: "space-between", gap: 20 }}
+          columnWrapperStyle={{
+            justifyContent: "space-between",
+            gap: 20,
+          }}
           numColumns={numColumns}
           data={recipeData}
           showsVerticalScrollIndicator={false}

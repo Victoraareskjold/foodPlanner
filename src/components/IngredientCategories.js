@@ -92,6 +92,9 @@ const categories = {
   "🌮 Tex-Mex": [
     "tortilla",
     "taco",
+    "taco lefse",
+    "taco-lefse",
+    "tacolefse",
     "nachochips",
     "nachos",
     "tacokrydder",
