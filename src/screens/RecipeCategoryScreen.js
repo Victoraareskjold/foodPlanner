@@ -11,7 +11,6 @@ import containerStyles from "../../styles/containerStyles";
 import { db, auth } from "../../firebase"; // Pass på riktig sti til din Firebase konfigurasjon
 import { collection, query, where, getDocs } from "firebase/firestore";
 
-import AdCardList from "../components/AdCardList"; // Anta at denne komponenten viser hver oppskrift
 import SearchBar from "../components/SearchBar";
 
 const RecipeCategoryScreen = ({ route, navigation }) => {

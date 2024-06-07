@@ -22,6 +22,7 @@ import placeholderStyles from "../../styles/placeholderStyles";
 import { getCategoryForIngredient } from "../components/IngredientCategories";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import Trash from "../../assets/SVGs/Trash";
+import HeaderComponent from "../components/HeaderComponent";
 
 const getWeekId = () => {
   const today = new Date();
@@ -202,7 +203,10 @@ const ShoppingList = () => {
 
   const renderIngredients = (ingredientList) => {
     return ingredientList.map((ingredient, index) => (
-      <Swipeable renderRightActions={rightSwipeActions}>
+      <Swipeable
+        renderRightActions={rightSwipeActions}
+        key={`${ingredient.name.toLowerCase()}|${index}`}
+      >
         <TouchableOpacity
           onPress={() =>
             updateIngredientStatus(ingredient, !ingredient.completed)
@@ -249,70 +253,65 @@ const ShoppingList = () => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
+      style={[
+        containerStyles.defaultContainer,
+        { paddingHorizontal: 0, gap: 0 },
+      ]}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
     >
-      <View style={styles.container}>
-        <SafeAreaView style={{ backgroundColor: "#FFF", zIndex: 10 }} />
-        <View style={styles.header}>
-          <Text style={fonts.header}>Handleliste</Text>
-        </View>
-        <View style={[containerStyles.defaultContainer, { gap: 32 }]}>
-          <ScrollView
-            contentContainerStyle={{
-              gap: 20,
-              paddingBottom: 108,
-              paddingHorizontal: 20,
-            }}
-            style={{ overflow: "visible", zIndex: 0 }}
-          >
-            {Object.entries(ingredientsByCategory).map(
-              ([category, ingredients]) =>
-                ingredients.length > 0 &&
-                !ingredients.every((ingredient) => ingredient.completed) && (
-                  <View key={category}>
-                    <Text style={styles.categoryHeader}>{category}</Text>
-                    <View style={styles.list}>
-                      {renderIngredients(
-                        ingredients.filter(
-                          (ingredient) => !ingredient.completed
-                        )
-                      )}
-                    </View>
-                  </View>
-                )
-            )}
-
-            <TouchableOpacity
-              style={{ alignSelf: "center" }}
-              onPress={toggleCompletedList}
-            >
-              {showCompleted ? (
-                <View
-                  style={{ flexDirection: "row", gap: 4, alignItems: "center" }}
-                >
-                  <Text style={fonts.body2}>Skjul fullførte</Text>
-                  <Invisible />
+      <SafeAreaView />
+      <ScrollView
+        contentContainerStyle={{
+          gap: 20,
+          paddingBottom: 108,
+          paddingHorizontal: 20,
+        }}
+        style={{ overflow: "visible", zIndex: 0 }}
+      >
+        {Object.entries(ingredientsByCategory).map(
+          ([category, ingredients]) =>
+            ingredients.length > 0 &&
+            !ingredients.every((ingredient) => ingredient.completed) && (
+              <View key={category}>
+                <Text style={styles.categoryHeader}>{category}</Text>
+                <View style={styles.list}>
+                  {renderIngredients(
+                    ingredients.filter((ingredient) => !ingredient.completed)
+                  )}
                 </View>
-              ) : (
-                <View
-                  style={{ flexDirection: "row", gap: 4, alignItems: "center" }}
-                >
-                  <Text style={fonts.body2}>Vis fullførte</Text>
-                  <Visible />
-                </View>
-              )}
-            </TouchableOpacity>
-            {showCompleted && (
-              <View style={styles.list}>
-                {renderIngredients(
-                  ingredients.filter((ingredient) => ingredient.completed)
-                )}
               </View>
+            )
+        )}
+
+        <TouchableOpacity
+          style={{ alignSelf: "center" }}
+          onPress={toggleCompletedList}
+        >
+          {showCompleted ? (
+            <View
+              style={{ flexDirection: "row", gap: 4, alignItems: "center" }}
+            >
+              <Text style={fonts.body2}>Skjul fullførte</Text>
+              <Invisible />
+            </View>
+          ) : (
+            <View
+              style={{ flexDirection: "row", gap: 4, alignItems: "center" }}
+            >
+              <Text style={fonts.body2}>Vis fullførte</Text>
+              <Visible />
+            </View>
+          )}
+        </TouchableOpacity>
+        {showCompleted && (
+          <View style={styles.list}>
+            {renderIngredients(
+              ingredients.filter((ingredient) => ingredient.completed)
             )}
-          </ScrollView>
-        </View>
-      </View>
+          </View>
+        )}
+      </ScrollView>
+
       <View style={styles.inputContainer}>
         <View style={{ gap: 12 }}>
           <TextInput

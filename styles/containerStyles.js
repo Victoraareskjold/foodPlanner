@@ -2,19 +2,20 @@ import colors from "./colors";
 
 export default {
   defaultContainer: {
-    marginTop: 32,
-    backgroundColor: "FCFCFC",
+    paddingHorizontal: 20,
+    backgroundColor: "#FCFCFC",
+    flex: 1,
+    gap: 20,
   },
   backgroundContainer: {
     backgroundColor: colors.white,
     flex: 1,
   },
   headerContainer: {
+    paddingVertical: 12,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    flexDirection: "row",
-    paddingHorizontal: 24,
-    marginBottom: 24,
   },
   topRight: {
     paddingHorizontal: 24,
@@ -81,6 +82,9 @@ export default {
     height: 48,
     width: 48,
     marginRight: 12,
+  },
+  bottomContainer: {
+    paddingBottom: 12,
   },
 
   /* DateTimePicker */

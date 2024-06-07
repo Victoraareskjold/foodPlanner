@@ -1,14 +1,5 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  SafeAreaView,
-  TouchableOpacity,
-  FlatList,
-  Image,
-} from "react-native";
+import { View } from "react-native";
 import { useState, useEffect } from "react";
-import { useNavigation } from "@react-navigation/native";
 
 import { auth, db } from "../../firebase";
 import {
@@ -21,19 +12,15 @@ import {
   getDocs,
 } from "firebase/firestore";
 
-import fonts from "../../styles/fonts";
-import images from "../../styles/images";
-import buttons from "../../styles/buttons";
-import colors from "../../styles/colors";
-import Timer from "../../assets/SVGs/Timer";
 import SearchBar from "../components/SearchBar";
+import HeaderComponent from "../components/HeaderComponent";
+import containerStyles from "../../styles/containerStyles";
+import RecipeList from "../components/RecipeList";
 
 export default function AddMeal({ route, navigation }) {
   const { currentDay, onMealAdded } = route.params;
-
   const [recipeData, setRecipeData] = useState([]);
   const [familyId, setFamilyId] = useState(null);
-  const [image, setImage] = useState(null);
 
   useEffect(() => {
     const fetchFamilyId = async () => {
@@ -117,111 +104,11 @@ export default function AddMeal({ route, navigation }) {
     }
   };
 
-  const numColumns = 2;
-
   return (
-    <View style={styles.container}>
-      <SafeAreaView />
-
+    <View style={containerStyles.defaultContainer}>
+      <HeaderComponent headerText="Velg en oppskrift" leftButton={true} />
       <SearchBar placeholder={"søk etter oppskrifter"} />
-
-      <FlatList
-        style={{ flex: 1, marginTop: 12 }}
-        columnWrapperStyle={{ justifyContent: "space-between", gap: 20 }}
-        numColumns={numColumns}
-        data={recipeData}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => handleSaveRecipe(item)}
-          >
-            {image ? (
-              <Image source={{ uri: image }} style={[images.mealImage2]} />
-            ) : (
-              <Image
-                source={require("../../assets/placeholderImage.png")}
-                style={images.mealImage2}
-              />
-            )}
-            <View style={styles.mealInfo}>
-              <Text style={fonts.body}>{item.title}</Text>
-              <View
-                style={{
-                  flexDirection: "row",
-                  gap: 4,
-                  alignItems: "center",
-                }}
-              >
-                <Timer />
-                <Text style={fonts.body2}>{item.time} min</Text>
-              </View>
-              <View style={{ gap: 8 }}>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  {item.categories.map((category, index) => (
-                    <View key={index} style={buttons.categoryBtn}>
-                      <Text style={styles.categoryText}>{category}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
+      <RecipeList recipes={recipeData} onPressItem={handleSaveRecipe} />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    padding: 12,
-  },
-  recipeItem: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-  },
-  recipeText: {
-    fontSize: 18,
-  },
-  categoryText: {
-    color: colors.blue,
-    ...fonts.body2,
-  },
-  countryText: {
-    color: colors.green,
-    ...fonts.body2,
-  },
-  categoryContainer: {
-    backgroundColor: colors.lightBlue,
-    borderRadius: 20,
-    marginRight: 6,
-    paddingVertical: 2,
-    paddingHorizontal: 6,
-  },
-  countryContainer: {
-    backgroundColor: colors.lightGreen,
-    borderRadius: 20,
-    marginRight: 6,
-    paddingVertical: 2,
-    paddingHorizontal: 6,
-  },
-  card: {
-    overflow: "hidden",
-    flex: 1,
-    borderRadius: 5,
-    backgroundColor: "#FFF",
-  },
-  mealInfo: {
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    gap: 6,
-  },
-});

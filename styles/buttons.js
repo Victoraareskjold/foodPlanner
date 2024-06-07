@@ -3,6 +3,12 @@ import React from "react";
 import colors from "./colors";
 
 export default StyleSheet.create({
+  headerButton: {
+    height: 20,
+    width: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   btn1: {
     marginTop: 6,
     paddingVertical: 12,
@@ -42,5 +48,11 @@ export default StyleSheet.create({
     borderRadius: 3,
     marginRight: 8,
     backgroundColor: colors.darkGrey,
+  },
+  primaryBtn: {
+    backgroundColor: "#185BF0",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderRadius: 5,
   },
 });

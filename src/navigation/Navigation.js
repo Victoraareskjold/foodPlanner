@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Text, Touchable } from "react-native";
 
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -10,7 +11,7 @@ import { auth } from "../../firebase";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 /* Screens */
-import DinSide from "../screens/DinSide";
+import Home from "../screens/Home";
 
 import ShoppingList from "../screens/ShoppingList";
 
@@ -30,6 +31,7 @@ import AddMeal from "../screens/AddMeal";
 import Profile from "../screens/Profile";
 
 import RecipeCategoryScreen from "../screens/RecipeCategoryScreen";
+import { TouchableOpacity } from "react-native-web";
 
 /* Tab bottom */
 const Tab = createBottomTabNavigator();
@@ -42,7 +44,7 @@ function TabGroup() {
         tabBarStyle: {},
         tabBarIcon: ({ color, focused, size }) => {
           let iconName;
-          if (route.name === "DinSideTab") {
+          if (route.name === "HomeTab") {
             iconName = focused ? "home" : "home-outline";
           } else if (route.name === "RecipeStackGroup") {
             iconName = focused ? "receipt" : "receipt-outline";
@@ -60,8 +62,8 @@ function TabGroup() {
       })}
     >
       <Tab.Screen
-        name="DinSideTab"
-        component={DinSide}
+        name="HomeTab"
+        component={Home}
         options={{ tabBarLabel: "Hjem" }}
       />
       <Tab.Screen
@@ -117,24 +119,24 @@ function LoginStackGroup() {
 
       <LoginStack.Screen
         options={{ headerShown: false }}
-        name="DinSideStack"
-        component={DinSideStackGroup}
+        name="HomeStack"
+        component={HomeStackGroup}
       />
     </LoginStack.Navigator>
   );
 }
 
-const DinSideStack = createNativeStackNavigator();
+const HomeStack = createNativeStackNavigator();
 
-function DinSideStackGroup() {
+function HomeStackGroup() {
   return (
-    <DinSideStack.Navigator>
-      <DinSideStack.Screen
+    <HomeStack.Navigator>
+      <HomeStack.Screen
         options={{ headerShown: false }}
-        name="DinSide"
+        name="HomeStack"
         component={TabGroup}
       />
-    </DinSideStack.Navigator>
+    </HomeStack.Navigator>
   );
 }
 
@@ -163,19 +165,19 @@ function RecipeStackGroup() {
         component={Recipes}
       />
       <RecipeStack.Screen
-        options={{ headerShown: true, headerTitle: "" }}
+        options={{ headerShown: false }}
         name="CreateRecipe"
         component={CreateRecipe}
       />
       <RecipeStack.Screen
-        options={{ headerShown: true, headerTitle: "" }}
+        options={{ headerShown: false }}
         name="SelectCategory"
         component={SelectCategory}
       />
       <RecipeStack.Screen
         name="RecipeCategoryScreen"
         component={RecipeCategoryScreen}
-        options={{ headerShown: true, headerTitle: "Kategorivisning" }}
+        options={{ headerShown: false }}
       />
     </RecipeStack.Navigator>
   );
@@ -192,7 +194,9 @@ function WeeklyMenuStackGroup() {
         component={WeeklyMenu}
       />
       <WeeklyMenuStack.Screen
-        options={{ headerShown: true }}
+        options={{
+          headerShown: false,
+        }}
         name="AddMeal"
         component={AddMeal}
       />
@@ -228,7 +232,7 @@ export default function Navigation() {
 
   return (
     <NavigationContainer>
-      {isUserLoggedIn ? <DinSideStackGroup /> : <LoginStackGroup />}
+      {isUserLoggedIn ? <HomeStackGroup /> : <LoginStackGroup />}
     </NavigationContainer>
   );
 }

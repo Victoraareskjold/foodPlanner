@@ -22,6 +22,7 @@ import fonts from "../../styles/fonts";
 import buttons from "../../styles/buttons";
 import colors from "../../styles/colors";
 import { setPriority } from "firebase/database";
+import HeaderComponent from "../components/HeaderComponent";
 
 const CreateRecipe = () => {
   const navigation = useNavigation();
@@ -90,6 +91,8 @@ const CreateRecipe = () => {
 
     setError("");
 
+    let userFamilyId;
+
     if (auth.currentUser) {
       const userDocRef = doc(db, "users", auth.currentUser.uid);
       const userDocSnap = await getDoc(userDocRef);
@@ -117,7 +120,14 @@ const CreateRecipe = () => {
     };
 
     try {
-      const docRef = await addDoc(collection(db, "recipes"), recipeData);
+      // Lagre oppskriften under families/{familyId}/recipes
+      const familyRecipesCollectionRef = collection(
+        db,
+        "families",
+        userFamilyId,
+        "recipes"
+      );
+      const docRef = await addDoc(familyRecipesCollectionRef, recipeData);
       console.log("Document written with ID: ", docRef.id);
       console.log("Oppskrift lagret!");
       navigation.goBack();
@@ -133,7 +143,7 @@ const CreateRecipe = () => {
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
       <ScrollView style={styles.container}>
-        <SafeAreaView />
+        <HeaderComponent headerText={title} leftButton={true} />
         <View>
           <Image
             source={require("../../assets/placeholderImage.png")}

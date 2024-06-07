@@ -3,12 +3,14 @@ import React from "react";
 
 export default StyleSheet.create({
   header: {
-    fontSize: 28,
-    fontWeight: "600",
-    letterSpacing: 1,
+    fontFamily: "Inter",
+    fontSize: 14,
+    fontWeight: "500",
+    textAlign: "center",
+    flex: 1,
   },
   subHeader: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: "400",
   },
   btnBody: {

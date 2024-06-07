@@ -59,6 +59,7 @@ export default function WeeklyMenu() {
   const weekDates = useMemo(() => generateWeekDates(), []);
   const [familyId, setFamilyId] = useState(null);
   const [recipesForWeek, setRecipesForWeek] = useState({});
+
   const [ingredients, setIngredients] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [completedIngredients, setCompletedIngredients] = useState([]);
@@ -262,7 +263,92 @@ export default function WeeklyMenu() {
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        containerStyles.defaultContainer,
+        { paddingHorizontal: 0, gap: 0 },
+      ]}
+    >
+      <SafeAreaView />
+      {/* Week menu list */}
+      <ScrollView>
+        <View style={{ paddingBottom: 32 }}>
+          {weekDates.map((date, index) => (
+            <View key={index} style={styles.dayContainer}>
+              <Text style={styles.dayText}>{date}</Text>
+              {recipesForWeek[date] ? (
+                <View style={styles.mealContainer}>
+                  {image ? (
+                    <Image source={{ uri: image }} style={[images.mealImage]} />
+                  ) : (
+                    <Image
+                      source={require("../../assets/vedBilde.png")}
+                      style={images.mealImage}
+                    />
+                  )}
+                  <View style={styles.mealInfo}>
+                    <View style={{ justifyContent: "center", gap: 4 }}>
+                      <Text style={styles.recipeText}>
+                        {recipesForWeek[date].title}
+                      </Text>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          gap: 4,
+                          alignItems: "center",
+                        }}
+                      >
+                        <Timer />
+                        <Text style={styles.recipeTime}>
+                          {recipesForWeek[date].time} min
+                        </Text>
+                      </View>
+
+                      {/* <Text style={styles.recipeText}>
+                    {recipesForWeek[date].categories.join(", ")}
+                  </Text> */}
+                    </View>
+                    <View style={{ justifyContent: "center" }}>
+                      <TouchableOpacity
+                        style={{
+                          justifyContent: "center",
+                          width: 32,
+                          height: 32,
+                          alignItems: "center",
+                        }}
+                      >
+                        <Trash />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={() =>
+                    navigation.navigate("AddMeal", { currentDay: date })
+                  }
+                >
+                  <Text style={styles.addButtonText}>Legg til Oppskrift</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+
+      {/* Complete menu */}
+      <View style={styles.inputContainer}>
+        <TouchableOpacity
+          style={styles.buttonClose}
+          onPress={addToShoppingList}
+        >
+          <Text style={[fonts.btnBody, { alignSelf: "center", color: "#FFF" }]}>
+            Fullfør
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Modal */}
       <Modal
         animationType="none"
@@ -385,89 +471,6 @@ export default function WeeklyMenu() {
           </View>
         </View>
       </Modal>
-      <SafeAreaView />
-      <View style={styles.header}>
-        <Text style={fonts.header}>Ukes meny</Text>
-      </View>
-
-      {/* Week menu list */}
-      <ScrollView
-        style={[containerStyles.defaultContainer, { flex: 1, gap: 20 }]}
-      >
-        <View style={{ paddingBottom: 32 }}>
-          {weekDates.map((date, index) => (
-            <View key={index} style={styles.dayContainer}>
-              <Text style={styles.dayText}>{date}</Text>
-              {recipesForWeek[date] ? (
-                <View style={styles.mealContainer}>
-                  {image ? (
-                    <Image source={{ uri: image }} style={[images.mealImage]} />
-                  ) : (
-                    <Image
-                      source={require("../../assets/vedBilde.png")}
-                      style={images.mealImage}
-                    />
-                  )}
-                  <View style={styles.mealInfo}>
-                    <View style={{ justifyContent: "center", gap: 4 }}>
-                      <Text style={styles.recipeText}>
-                        {recipesForWeek[date].title}
-                      </Text>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          gap: 4,
-                          alignItems: "center",
-                        }}
-                      >
-                        <Timer />
-                        <Text style={styles.recipeTime}>
-                          {recipesForWeek[date].time} min
-                        </Text>
-                      </View>
-
-                      {/* <Text style={styles.recipeText}>
-                    {recipesForWeek[date].categories.join(", ")}
-                  </Text> */}
-                    </View>
-                    <View style={{ justifyContent: "center" }}>
-                      <TouchableOpacity
-                        style={{
-                          justifyContent: "center",
-                          width: 32,
-                          height: 32,
-                          alignItems: "center",
-                        }}
-                      >
-                        <Trash />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
-              ) : (
-                <TouchableOpacity
-                  style={styles.addButton}
-                  onPress={() =>
-                    navigation.navigate("AddMeal", { currentDay: date })
-                  }
-                >
-                  <Text style={styles.addButtonText}>Legg til Oppskrift</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          ))}
-        </View>
-      </ScrollView>
-      <View style={styles.inputContainer}>
-        <TouchableOpacity
-          style={styles.buttonClose}
-          onPress={addToShoppingList}
-        >
-          <Text style={[fonts.btnBody, { alignSelf: "center", color: "#FFF" }]}>
-            Fullfør
-          </Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -486,6 +489,7 @@ const styles = StyleSheet.create({
   },
   dayContainer: {
     paddingVertical: 8,
+    paddingHorizontal: 20,
     gap: 10,
   },
   dayText: {
@@ -577,7 +581,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   inputContainer: {
-    backgroundColor: "#FCFCFC",
     paddingHorizontal: 20,
     paddingBottom: 12,
   },
