@@ -1,29 +1,21 @@
 import { View, TouchableOpacity, Text } from "react-native";
-import { useState, useEffect } from "react";
-
-import { auth, db } from "../../firebase";
-import {
-  collection,
-  doc,
-  getDoc,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
-
+import { useNavigation } from "@react-navigation/native";
 import containerStyles from "../../styles/containerStyles";
 import buttons from "../../styles/buttons";
+import fonts from "../../styles/fonts";
 
 import SearchBar from "../components/SearchBar";
 import HeaderComponent from "../components/HeaderComponent";
 import RecipeList from "../components/RecipeList";
-import fonts from "../../styles/fonts";
-import { useNavigation } from "@react-navigation/native";
 import useFamilyRecipes from "../hooks/useFamilyRecipes";
 
 export default function Recipes() {
   const navigation = useNavigation();
   const recipeData = useFamilyRecipes();
+
+  const handleRecipeView = (recipe) => {
+    navigation.navigate("RecipeView", { recipe });
+  };
 
   return (
     <View style={containerStyles.defaultContainer}>
@@ -31,7 +23,7 @@ export default function Recipes() {
 
       <SearchBar placeholder={"søk etter oppskrifter"} />
 
-      <RecipeList recipes={recipeData} />
+      <RecipeList recipes={recipeData} onPressItem={handleRecipeView} />
 
       <TouchableOpacity
         style={[buttons.primaryBtn, { marginBottom: 12 }]}

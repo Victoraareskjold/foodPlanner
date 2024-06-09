@@ -33,7 +33,7 @@ export default function SetupName({ navigation }) {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       console.log("Logget inn!");
-      navigation.navigate("DinSide");
+      navigation.navigate("Home");
     } catch (error) {
       if (
         error.code === "auth/invalid-email" ||

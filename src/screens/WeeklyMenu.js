@@ -21,6 +21,8 @@ import {
   onSnapshot,
   setDoc,
   deleteDoc,
+  addDoc,
+  documentId,
 } from "firebase/firestore";
 import { useMemo } from "react";
 import fonts from "../../styles/fonts";
@@ -118,7 +120,7 @@ export default function WeeklyMenu() {
 
   const fetchRecipeDetails = async (recipeId, date) => {
     if (!recipeId) return;
-    const recipeDocRef = doc(db, "recipes", recipeId);
+    const recipeDocRef = doc(db, "families", familyId, "recipes", recipeId);
     const recipeDocSnap = await getDoc(recipeDocRef);
     if (recipeDocSnap.exists()) {
       setRecipesForWeek((prevRecipes) => ({
@@ -146,7 +148,7 @@ export default function WeeklyMenu() {
       });
 
       const recipesQuery = query(
-        collection(db, "recipes"),
+        collection(db, "families", familyId, "recipes"),
         where("familyId", "==", familyId)
       );
       const recipesSnapshot = await getDocs(recipesQuery);
@@ -190,14 +192,14 @@ export default function WeeklyMenu() {
 
   const confirmShoppingList = async () => {
     if (familyId) {
-      const weekId = getWeekId();
       const shoppingListRef = doc(
         db,
         "families",
         familyId,
-        "shoppingLists",
-        weekId
+        "shoppingList",
+        "ingredients"
       );
+
       await setDoc(
         shoppingListRef,
         { ingredients: shoppingList },
@@ -206,7 +208,7 @@ export default function WeeklyMenu() {
 
       setModalVisible(false);
       alert("Ingredienser lagt til i handleliste!");
-      navigation.navigate("ShoppingList");
+      navigation.navigate("ShoppingListStackGroup");
     }
   };
 

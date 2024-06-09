@@ -58,13 +58,12 @@ const ShoppingList = () => {
     if (familyId) {
       const fetchShoppingList = async () => {
         try {
-          const weekId = getWeekId();
           const shoppingListRef = doc(
             db,
             "families",
             familyId,
-            "shoppingLists",
-            weekId
+            "shoppingList",
+            "ingredients"
           );
 
           const shoppingListSnap = await getDoc(shoppingListRef);

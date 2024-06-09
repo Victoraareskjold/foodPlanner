@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { auth, db } from "../../firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "../../firebase";
 
 const useUserData = () => {
   const [userData, setUserData] = useState(null);
@@ -8,14 +8,15 @@ const useUserData = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (auth.currentUser) {
-        const userDocRef = doc(db, "users", auth.currentUser.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          setUserData(userDocSnap.data());
-        }
-        setLoading(false);
+      const userDocRef = doc(db, "users", auth.currentUser.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        setUserData(userDocSnap.data());
+      } else {
+        console.log("User data not found");
       }
+      setLoading(false);
     };
 
     fetchUserData();

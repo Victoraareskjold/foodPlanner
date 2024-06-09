@@ -11,7 +11,7 @@ const useFamilyRecipes = () => {
     const fetchRecipes = async () => {
       if (familyId) {
         const familyRecipesRef = query(
-          collection(db, "recipes"),
+          collection(db, "families", familyId, "recipes"),
           where("familyId", "==", familyId)
         );
         try {

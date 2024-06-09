@@ -1,9 +1,7 @@
-import { StyleSheet, Text, View } from "react-native";
-import React from "react";
+import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
   header: {
-    fontFamily: "Inter",
     fontSize: 14,
     fontWeight: "500",
     textAlign: "center",

@@ -37,6 +37,7 @@
     "updates": {
       "url": "https://u.expo.dev/ee376f00-bbe7-4817-9e1c-8520c68793fc"
     },
-    "owner": "victoraareskjold"
+    "owner": "victoraareskjold",
+    "plugins": ["expo-font"]
   }
 }

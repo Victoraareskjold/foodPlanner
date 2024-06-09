@@ -4,10 +4,9 @@ import fonts from "../../styles/fonts";
 import containerStyles from "../../styles/containerStyles";
 import buttons from "../../styles/buttons";
 import { useNavigation } from "@react-navigation/native";
-
 import BackHandler from "../../assets/SVGs/BackHandler";
 
-const HeaderComponent = ({ leftButton, headerText }) => {
+const HeaderComponent = ({ leftButton, headerText, rightButton }) => {
   const navigation = useNavigation();
 
   return (
@@ -23,8 +22,10 @@ const HeaderComponent = ({ leftButton, headerText }) => {
           </TouchableOpacity>
         )}
         <Text style={fonts.header}>{headerText}</Text>
-        {leftButton && (
-          <TouchableOpacity style={buttons.headerButton}></TouchableOpacity>
+        {rightButton && (
+          <TouchableOpacity style={buttons.headerButton}>
+            {rightButton()}
+          </TouchableOpacity>
         )}
       </View>
     </View>

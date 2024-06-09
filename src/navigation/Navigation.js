@@ -29,9 +29,10 @@ import WeeklyMenu from "../screens/WeeklyMenu";
 import AddMeal from "../screens/AddMeal";
 
 import Profile from "../screens/Profile";
+import Settings from "../screens/Settings";
 
 import RecipeCategoryScreen from "../screens/RecipeCategoryScreen";
-import { TouchableOpacity } from "react-native-web";
+import RecipeView from "../screens/RecipeView";
 
 /* Tab bottom */
 const Tab = createBottomTabNavigator();
@@ -166,6 +167,11 @@ function RecipeStackGroup() {
       />
       <RecipeStack.Screen
         options={{ headerShown: false }}
+        name="RecipeView"
+        component={RecipeView}
+      />
+      <RecipeStack.Screen
+        options={{ headerShown: false }}
         name="CreateRecipe"
         component={CreateRecipe}
       />
@@ -213,6 +219,11 @@ function ProfileStackGroup() {
         options={{ headerShown: false }}
         name="Profile"
         component={Profile}
+      />
+      <ProfileStack.Screen
+        options={{ headerShown: false }}
+        name="Settings"
+        component={Settings}
       />
     </ProfileStack.Navigator>
   );
