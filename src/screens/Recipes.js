@@ -18,15 +18,21 @@ export default function Recipes() {
   };
 
   return (
-    <View style={containerStyles.defaultContainer}>
-      <HeaderComponent headerText="Dine oppskrifter" leftButton={false} />
-
-      <SearchBar placeholder={"søk etter oppskrifter"} />
+    <View
+      style={[
+        containerStyles.defaultContainer,
+        { paddingHorizontal: 0, gap: 0 },
+      ]}
+    >
+      <View style={{ paddingHorizontal: 20 }}>
+        <HeaderComponent headerText="All Recipes" leftButton={false} />
+        <SearchBar placeholder={"søk etter oppskrifter"} />
+      </View>
 
       <RecipeList recipes={recipeData} onPressItem={handleRecipeView} />
 
       <TouchableOpacity
-        style={[buttons.primaryBtn, { marginBottom: 12 }]}
+        style={[buttons.primaryBtn, { marginBottom: 12, marginHorizontal: 20 }]}
         onPress={() => navigation.navigate("CreateRecipe")}
       >
         <Text style={[fonts.btnBody, { alignSelf: "center", color: "#FFF" }]}>

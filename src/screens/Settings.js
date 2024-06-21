@@ -12,7 +12,7 @@ const Settings = () => {
 
   return (
     <View style={containerStyles.defaultContainer}>
-      <HeaderComponent leftButton={true} headerText="Innstillinger" />
+      <HeaderComponent leftButton={true} headerText="Settings" />
       <View style={{ flex: 1 }}>
         <TouchableOpacity style={buttons.primaryBtn}>
           <Text>hei</Text>

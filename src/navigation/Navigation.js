@@ -33,6 +33,7 @@ import Settings from "../screens/Settings";
 
 import RecipeCategoryScreen from "../screens/RecipeCategoryScreen";
 import RecipeView from "../screens/RecipeView";
+import colors from "../../styles/colors";
 
 /* Tab bottom */
 const Tab = createBottomTabNavigator();
@@ -59,7 +60,7 @@ function TabGroup() {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: "#2984FF",
+        tabBarActiveTintColor: colors.primary,
       })}
     >
       <Tab.Screen

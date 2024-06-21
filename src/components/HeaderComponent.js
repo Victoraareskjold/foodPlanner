@@ -10,7 +10,7 @@ const HeaderComponent = ({ leftButton, headerText, rightButton }) => {
   const navigation = useNavigation();
 
   return (
-    <View>
+    <View style={{ backgroundColor: "#FFF" }}>
       <SafeAreaView />
       <View style={containerStyles.headerContainer}>
         {leftButton && (

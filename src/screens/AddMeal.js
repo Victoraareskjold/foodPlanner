@@ -105,9 +105,11 @@ export default function AddMeal({ route, navigation }) {
   };
 
   return (
-    <View style={containerStyles.defaultContainer}>
+    <View style={[containerStyles.defaultContainer, { paddingHorizontal: 0 }]}>
       <HeaderComponent headerText="Velg en oppskrift" leftButton={true} />
-      <SearchBar placeholder={"søk etter oppskrifter"} />
+      <View style={{ paddingHorizontal: 20 }}>
+        <SearchBar placeholder={"søk etter oppskrifter"} />
+      </View>
       <RecipeList recipes={recipeData} onPressItem={handleSaveRecipe} />
     </View>
   );

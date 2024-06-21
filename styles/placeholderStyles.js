@@ -4,7 +4,7 @@ import colors from "./colors";
 
 export default StyleSheet.create({
   simple: {
-    backgroundColor: colors.darkGrey,
+    backgroundColor: colors.secondary,
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderRadius: 5,

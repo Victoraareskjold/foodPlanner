@@ -31,6 +31,21 @@ const RecipeView = () => {
     ));
   };
 
+  const renderSteps = () => {
+    if (!recipe.steps) {
+      return <Text>Ingen steg tilgjengelig</Text>;
+    }
+    return recipe.steps.map((step, index) => (
+      <View
+        key={index}
+        style={{ flexDirection: "row", gap: 0, marginBottom: 8 }}
+      >
+        <Text style={[{ width: 20 }]}>{index + 1}.</Text>
+        <Text style={[{ flex: 1 }]}>{step}</Text>
+      </View>
+    ));
+  };
+
   return (
     <View
       style={[
@@ -87,6 +102,12 @@ const RecipeView = () => {
           <View style={{ gap: 12 }}>
             <Text style={fonts.title}>Ingredienser:</Text>
             {renderIngredients()}
+          </View>
+
+          {/* Steg */}
+          <View style={{ gap: 12 }}>
+            <Text style={fonts.title}>Steg:</Text>
+            {renderSteps()}
           </View>
         </View>
       </ScrollView>

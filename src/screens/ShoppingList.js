@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { db, auth } from "../../firebase";
 import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
-import { Picker } from "@react-native-picker/picker";
+import DropDownPicker from "react-native-dropdown-picker";
 import containerStyles from "../../styles/containerStyles";
 import fonts from "../../styles/fonts";
 import Check from "../../assets/SVGs/Check";
@@ -23,6 +23,7 @@ import { getCategoryForIngredient } from "../components/IngredientCategories";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import Trash from "../../assets/SVGs/Trash";
 import HeaderComponent from "../components/HeaderComponent";
+import colors from "../../styles/colors";
 
 const getWeekId = () => {
   const today = new Date();
@@ -42,6 +43,18 @@ const ShoppingList = () => {
   const [quantity, setQuantity] = useState("1");
   const [unit, setUnit] = useState("stk.");
   const [error, setError] = useState("");
+
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("stk.");
+  const [items, setItems] = useState([
+    { label: "stk.", value: "stk." },
+    { label: "L", value: "L" },
+    { label: "dl", value: "dl" },
+    { label: "kg", value: "kg" },
+    { label: "g", value: "g" },
+  ]);
+
+  const ingredientNameRef = useRef(null);
 
   useEffect(() => {
     if (auth.currentUser) {
@@ -95,8 +108,8 @@ const ShoppingList = () => {
         db,
         "families",
         familyId,
-        "shoppingLists",
-        weekId
+        "shoppingList",
+        "ingredients"
       );
 
       const updatedIngredients = ingredients.map((ing) =>
@@ -112,6 +125,21 @@ const ShoppingList = () => {
       );
 
       setIngredients(updatedIngredients);
+
+      if (completed) {
+        setTimeout(async () => {
+          const finalIngredients = updatedIngredients.filter(
+            (ing) =>
+              !(ing.name === ingredient.name && ing.unit === ingredient.unit)
+          );
+          await setDoc(
+            shoppingListRef,
+            { ingredients: finalIngredients },
+            { merge: true }
+          );
+          setIngredients(finalIngredients);
+        }, 5000); // 5 minutter i millisekunder
+      }
     }
   };
 
@@ -123,8 +151,8 @@ const ShoppingList = () => {
           db,
           "families",
           familyId,
-          "shoppingLists",
-          weekId
+          "shoppingList",
+          "ingredients"
         );
 
         const existingIngredientIndex = ingredients.findIndex(
@@ -162,10 +190,20 @@ const ShoppingList = () => {
 
         setIngredients(updatedIngredients);
         setIngredientName("");
+        setQuantity("1");
         setError("");
       }
+      setTimeout(() => {
+        ingredientNameRef.current?.focus(); // Beholder fokus på TextInput med forsinkelse
+      }, 1);
     } else {
       setError("Alle felt må fylles ut for å legge til en ingrediens.");
+    }
+  };
+
+  const handleSubmitEditing = () => {
+    if (ingredientName.length > 0) {
+      addIngredient();
     }
   };
 
@@ -238,7 +276,7 @@ const ShoppingList = () => {
     return (
       <TouchableOpacity
         style={{
-          borderRadius: 5,
+          borderRadius: 25,
           justifyContent: "center",
           alignItems: "center",
           paddingHorizontal: 16,
@@ -314,47 +352,59 @@ const ShoppingList = () => {
       <View style={styles.inputContainer}>
         <View style={{ gap: 12 }}>
           <TextInput
-            placeholder="Ingrediens navn"
+            ref={ingredientNameRef}
             value={ingredientName}
             onChangeText={setIngredientName}
+            placeholder="Ingrediens navn"
             style={[placeholderStyles.simple]}
+            placeholderTextColor={colors.primary}
+            onSubmitEditing={handleSubmitEditing}
+            returnKeyType="done"
           />
           <View style={{ flexDirection: "row", gap: 12 }}>
             <TextInput
-              placeholder="Antall"
               value={quantity}
               onChangeText={setQuantity}
-              style={[placeholderStyles.simple, { width: 80 }]}
+              placeholder="Antall"
+              style={[placeholderStyles.simple, { flex: 1 }]}
+              placeholderTextColor={colors.primary}
+              keyboardType="numeric"
             />
-            <Picker
-              itemStyle={{
-                fontSize: 14,
+
+            <DropDownPicker
+              labelStyle={{ color: colors.dark }}
+              containerStyle={{
+                flex: 1,
+                backgroundColor: colors.secondary,
+                borderRadius: 10,
+                borderColor: colors.secondary,
               }}
-              style={[
-                placeholderStyles.simple,
-                {
-                  flex: 1,
-                  height: 49,
-                  justifyContent: "center",
-                  overflow: "scroll",
-                },
-              ]}
-              selectedValue={unit}
-              onValueChange={(itemValue, itemIndex) => setUnit(itemValue)}
-              placeholder="Enhet"
-            >
-              <Picker.Item label="stk." value="stk." />
-              <Picker.Item label="L" value="L" />
-              <Picker.Item label="dl" value="dl" />
-              <Picker.Item label="kg" value="kg" />
-              <Picker.Item label="g" value="g" />
-            </Picker>
-            <TouchableOpacity
-              style={[styles.categoryBtn, { backgroundColor: "#185BF0" }]}
-              onPress={addIngredient}
-            >
+              style={{
+                flex: 1,
+                backgroundColor: colors.secondary,
+                borderColor: colors.secondary,
+              }}
+              dropDownContainerStyle={{
+                flex: 1,
+                backgroundColor: "white",
+                borderColor: colors.secondary,
+              }}
+              placeholder={value}
+              open={open}
+              value={value}
+              items={items}
+              setOpen={setOpen}
+              setValue={setValue}
+              setItems={setItems}
+              onChangeValue={(value) => setUnit(value)}
+            />
+
+            <TouchableOpacity style={styles.addBtn} onPress={addIngredient}>
               <Text
-                style={[fonts.btnBody, { alignSelf: "center", color: "#FFF" }]}
+                style={[
+                  fonts.btnBody,
+                  { alignSelf: "center", color: colors.popColor },
+                ]}
               >
                 Legg til
               </Text>
@@ -390,7 +440,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     paddingHorizontal: 16,
     paddingVertical: 16,
-    borderRadius: 5,
+    borderRadius: 25,
   },
   listText: {
     flexDirection: "row",
@@ -402,13 +452,13 @@ const styles = StyleSheet.create({
     width: 20,
     borderColor: "#E1E8F9",
     borderWidth: 1.5,
-    borderRadius: 5,
+    borderRadius: 25,
   },
   checkedBox: {
     height: 20,
     width: 20,
     backgroundColor: "#185BF0",
-    borderRadius: 5,
+    borderRadius: 25,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -430,11 +480,18 @@ const styles = StyleSheet.create({
     backgroundColor: "#EEEEEE",
     paddingHorizontal: 16,
     paddingVertical: 16,
-    borderRadius: 5,
+    borderRadius: 25,
     flex: 1,
     justifyContent: "center",
   },
   categoryHeader: {
     color: "#C3C3C3",
+  },
+  addBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    flex: 1,
+    backgroundColor: colors.popColorSecondary,
+    borderRadius: 10,
   },
 });

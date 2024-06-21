@@ -1,5 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
-import React from "react";
+import { StyleSheet } from "react-native";
 import colors from "./colors";
 
 export default StyleSheet.create({
@@ -43,14 +42,13 @@ export default StyleSheet.create({
     borderRadius: 100,
   },
   categoryBtn: {
-    paddingHorizontal: 4,
-    paddingVertical: 4,
-    borderRadius: 3,
-    marginRight: 8,
-    backgroundColor: colors.darkGrey,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: colors.popColorSecondary,
   },
   primaryBtn: {
-    backgroundColor: "#185BF0",
+    backgroundColor: colors.primary,
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderRadius: 5,

@@ -18,7 +18,7 @@ export default function DinSide() {
 
   return (
     <View style={containerStyles.defaultContainer}>
-      <HeaderComponent headerText="Hjem" leftButton={false} />
+      <HeaderComponent headerText="Home" leftButton={false} />
       <View>
         <Text>Tomt enn så lenge..</Text>
       </View>

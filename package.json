@@ -20,7 +20,9 @@
     "expo": "^51.0.8",
     "expo-clipboard": "~6.0.3",
     "expo-dev-client": "~4.0.14",
+    "expo-font": "~12.0.7",
     "expo-image-picker": "~15.0.5",
+    "expo-splash-screen": "~0.27.5",
     "expo-status-bar": "~1.12.1",
     "expo-updates": "~0.25.14",
     "firebase": "^10.6.0",
@@ -29,15 +31,15 @@
     "react-dom": "18.2.0",
     "react-firebase-hooks": "^5.1.1",
     "react-native": "0.74.1",
+    "react-native-dropdown-picker": "^5.4.6",
     "react-native-gifted-chat": "^2.4.0",
+    "react-native-picker-select": "^9.1.3",
     "react-native-screens": "3.31.1",
     "react-native-svg": "15.2.0",
     "react-native-textinput-effects": "^0.6.3",
     "react-native-uuid": "^2.0.2",
     "react-native-vector-icons": "^10.0.2",
-    "react-native-web": "~0.19.10",
-    "expo-font": "~12.0.7",
-    "expo-splash-screen": "~0.27.5"
+    "react-native-web": "~0.19.10"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

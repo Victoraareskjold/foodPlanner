@@ -32,6 +32,8 @@ import Check from "../../assets/SVGs/Check";
 import images from "../../styles/images";
 import Timer from "../../assets/SVGs/Timer";
 import Trash from "../../assets/SVGs/Trash";
+import HeaderComponent from "../components/HeaderComponent";
+import Plus from "../../assets/SVGs/Plus";
 
 const generateWeekDates = () => {
   let dates = [];
@@ -56,6 +58,15 @@ const generateWeekDates = () => {
   return dates;
 };
 
+const getCurrentDate = () => {
+  const today = new Date();
+  return today.toLocaleDateString("no-NO", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+  });
+};
+
 export default function WeeklyMenu() {
   const navigation = useNavigation();
   const weekDates = useMemo(() => generateWeekDates(), []);
@@ -68,6 +79,7 @@ export default function WeeklyMenu() {
   const [showCompleted, setShowCompleted] = useState(false);
   const [shoppingList, setShoppingList] = useState([]);
   const [image, setImage] = useState(null);
+  const currentDate = getCurrentDate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -264,6 +276,28 @@ export default function WeeklyMenu() {
     }
   };
 
+  const rightButton = () => (
+    <TouchableOpacity
+      style={[
+        styles.modalButtonClose,
+        {
+          alignSelf: "flex-end",
+          backgroundColor: colors.lightGrey,
+        },
+      ]}
+      onPress={() => setModalVisible(!modalVisible)}
+    >
+      <Text
+        style={[
+          fonts.btnBody,
+          { alignSelf: "center", color: colors.defaultLight },
+        ]}
+      >
+        x
+      </Text>
+    </TouchableOpacity>
+  );
+
   return (
     <View
       style={[
@@ -277,14 +311,24 @@ export default function WeeklyMenu() {
         <View style={{ paddingBottom: 32 }}>
           {weekDates.map((date, index) => (
             <View key={index} style={styles.dayContainer}>
-              <Text style={styles.dayText}>{date}</Text>
+              <Text
+                style={[
+                  styles.dayText,
+                  date === currentDate && {
+                    color: colors.dark,
+                    fontSize: 18,
+                  },
+                ]}
+              >
+                {date}
+              </Text>
               {recipesForWeek[date] ? (
                 <View style={styles.mealContainer}>
                   {image ? (
                     <Image source={{ uri: image }} style={[images.mealImage]} />
                   ) : (
                     <Image
-                      source={require("../../assets/vedBilde.png")}
+                      source={require("../../assets/placeholderImage.png")}
                       style={images.mealImage}
                     />
                   )}
@@ -331,7 +375,8 @@ export default function WeeklyMenu() {
                     navigation.navigate("AddMeal", { currentDay: date })
                   }
                 >
-                  <Text style={styles.addButtonText}>Legg til Oppskrift</Text>
+                  <Text style={styles.addButtonText}>Legg til oppskrift</Text>
+                  <Plus />
                 </TouchableOpacity>
               )}
             </View>
@@ -360,35 +405,10 @@ export default function WeeklyMenu() {
       >
         <View style={styles.modalView}>
           <View style={styles.modalContainer}>
-            <View
-              style={[
-                fonts.header,
-                {
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                },
-              ]}
-            >
-              <Text style={fonts.subHeader}>Hva har du fra før av?</Text>
-              <TouchableOpacity
-                style={[
-                  styles.button,
-                  styles.buttonClose,
-                  { alignSelf: "flex-end", backgroundColor: colors.lightGrey },
-                ]}
-                onPress={() => setModalVisible(!modalVisible)}
-              >
-                <Text
-                  style={[
-                    fonts.btnBody,
-                    { alignSelf: "center", color: colors.defaultLight },
-                  ]}
-                >
-                  Lukk
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <HeaderComponent
+              headerText="Add to groceries"
+              rightButton={rightButton}
+            />
 
             <ScrollView
               contentContainerStyle={{ gap: 20 }}
@@ -459,7 +479,6 @@ export default function WeeklyMenu() {
                 )}
               </View>
             </ScrollView>
-
             <TouchableOpacity
               style={[styles.button, styles.buttonClose]}
               onPress={confirmShoppingList}
@@ -467,7 +486,7 @@ export default function WeeklyMenu() {
               <Text
                 style={[fonts.btnBody, { alignSelf: "center", color: "#FFF" }]}
               >
-                Legg til i handleliste
+                Add {ingredients.length} items
               </Text>
             </TouchableOpacity>
           </View>
@@ -480,7 +499,7 @@ export default function WeeklyMenu() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FCFCFC",
+    backgroundColor: colors.bgColor,
   },
   header: {
     paddingHorizontal: 20,
@@ -490,22 +509,27 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   dayContainer: {
-    paddingVertical: 8,
+    paddingVertical: 16,
     paddingHorizontal: 20,
-    gap: 10,
+    gap: 0,
   },
   dayText: {
     fontSize: 16,
     fontWeight: "bold",
+    color: colors.primary,
+    marginBottom: 4,
   },
   addButton: {
-    backgroundColor: colors.lightBlue,
-    padding: 12,
+    padding: 16,
     marginTop: 5,
-    borderRadius: 5,
+    borderRadius: 10,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 10,
   },
   addButtonText: {
-    color: colors.blue,
+    color: colors.primary,
     textAlign: "center",
   },
   recipeText: {
@@ -523,7 +547,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     backgroundColor: "white",
-    borderRadius: 5,
+    borderRadius: 10,
     padding: 12,
     gap: 20,
   },
@@ -541,7 +565,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     paddingHorizontal: 16,
     paddingVertical: 16,
-    borderRadius: 5,
+    borderRadius: 10,
   },
   listText: {
     flexDirection: "row",
@@ -553,26 +577,33 @@ const styles = StyleSheet.create({
     width: 20,
     borderColor: "#E1E8F9",
     borderWidth: 1.5,
-    borderRadius: 5,
+    borderRadius: 10,
   },
   checkedBox: {
     height: 20,
     width: 20,
     backgroundColor: "#185BF0",
-    borderRadius: 5,
+    borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
   },
   buttonClose: {
-    backgroundColor: "#185BF0",
+    backgroundColor: colors.primary,
     paddingHorizontal: 16,
     paddingVertical: 16,
-    borderRadius: 5,
+    borderRadius: 10,
+  },
+  modalButtonClose: {
+    backgroundColor: "#185BF0",
+    height: 24,
+    width: 24,
+    borderRadius: 10,
+    justifyContent: "center",
   },
   mealContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.secondary,
     flexDirection: "row",
-    borderRadius: 5,
+    borderRadius: 10,
     overflow: "hidden",
   },
   mealInfo: {

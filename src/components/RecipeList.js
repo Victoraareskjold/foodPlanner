@@ -39,7 +39,7 @@ const RecipeList = ({ recipes, onPressItem }) => {
 
   return (
     <FlatList
-      style={{ flex: 1, marginTop: 12 }}
+      style={{ flex: 1, marginTop: 12, paddingHorizontal: 20 }}
       columnWrapperStyle={{ justifyContent: "space-between", gap: 20 }}
       numColumns={numColumns}
       data={formatRecipes(recipes, numColumns)}
@@ -91,8 +91,9 @@ const styles = StyleSheet.create({
   card: {
     overflow: "hidden",
     flex: 1,
-    borderRadius: 5,
-    backgroundColor: "#FFF",
+    borderRadius: 10,
+    backgroundColor: colors.secondary,
+    marginBottom: 32,
   },
   mealInfo: {
     paddingHorizontal: 12,
@@ -100,8 +101,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   categoryText: {
-    color: colors.blue,
-    ...fonts.body2,
+    color: colors.popColor,
+    fontSize: 12,
   },
   itemInvisible: {
     display: "none",
