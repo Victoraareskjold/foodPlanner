@@ -64,12 +64,6 @@ const RecipeList = ({ recipes, onPressItem }) => {
             )}
             <View style={styles.mealInfo}>
               <Text style={fonts.body}>{item.title}</Text>
-              <View
-                style={{ flexDirection: "row", gap: 4, alignItems: "center" }}
-              >
-                <Timer />
-                <Text style={fonts.body2}>{item.time} min</Text>
-              </View>
               <View style={{ gap: 8 }}>
                 <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
                   {item.categories.map((category, index) => (
@@ -98,11 +92,12 @@ const styles = StyleSheet.create({
   mealInfo: {
     paddingHorizontal: 12,
     paddingVertical: 12,
-    gap: 6,
+    gap: 8,
   },
   categoryText: {
     color: colors.popColor,
     fontSize: 12,
+    fontWeight: "600",
   },
   itemInvisible: {
     display: "none",

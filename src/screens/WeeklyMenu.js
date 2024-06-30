@@ -8,6 +8,7 @@ import {
   Modal,
   ScrollView,
   Image,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { auth, db } from "../../firebase";
@@ -21,8 +22,6 @@ import {
   onSnapshot,
   setDoc,
   deleteDoc,
-  addDoc,
-  documentId,
 } from "firebase/firestore";
 import { useMemo } from "react";
 import fonts from "../../styles/fonts";
@@ -276,6 +275,36 @@ export default function WeeklyMenu() {
     }
   };
 
+  const handleDeleteRecipe = async (date) => {
+    Alert.alert(
+      "Bekreft sletting",
+      "Er du sikker på at du vil slette denne oppskriften?",
+      [
+        {
+          text: "Avbryt",
+          style: "cancel",
+        },
+        {
+          text: "Slett",
+          onPress: async () => {
+            if (familyId) {
+              const recipeRef = doc(db, "families", familyId, "weekMenu", date);
+              await deleteDoc(recipeRef);
+
+              setRecipesForWeek((prevRecipes) => {
+                const updatedRecipes = { ...prevRecipes };
+                delete updatedRecipes[date];
+                return updatedRecipes;
+              });
+            }
+          },
+          style: "destructive",
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   const rightButton = () => (
     <TouchableOpacity
       style={[
@@ -350,9 +379,9 @@ export default function WeeklyMenu() {
                         </Text>
                       </View>
 
-                      {/* <Text style={styles.recipeText}>
-                    {recipesForWeek[date].categories.join(", ")}
-                  </Text> */}
+                      <Text style={styles.recipeText}>
+                        {recipesForWeek[date].categories.join(", ")}
+                      </Text>
                     </View>
                     <View style={{ justifyContent: "center" }}>
                       <TouchableOpacity
@@ -362,6 +391,7 @@ export default function WeeklyMenu() {
                           height: 32,
                           alignItems: "center",
                         }}
+                        onPress={() => handleDeleteRecipe(date)}
                       >
                         <Trash />
                       </TouchableOpacity>

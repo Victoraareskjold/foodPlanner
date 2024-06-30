@@ -8,6 +8,7 @@ import SearchBar from "../components/SearchBar";
 import HeaderComponent from "../components/HeaderComponent";
 import RecipeList from "../components/RecipeList";
 import useFamilyRecipes from "../hooks/useFamilyRecipes";
+import colors from "../../styles/colors";
 
 export default function Recipes() {
   const navigation = useNavigation();
@@ -24,7 +25,12 @@ export default function Recipes() {
         { paddingHorizontal: 0, gap: 0 },
       ]}
     >
-      <View style={{ paddingHorizontal: 20 }}>
+      <View
+        style={{
+          paddingHorizontal: 20,
+          backgroundColor: colors.white,
+        }}
+      >
         <HeaderComponent headerText="All Recipes" leftButton={false} />
         <SearchBar placeholder={"søk etter oppskrifter"} />
       </View>
