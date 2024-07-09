@@ -11,6 +11,8 @@ import { useNavigation } from "@react-navigation/native";
 import containerStyles from "../../styles/containerStyles";
 import fonts from "../../styles/fonts";
 import buttons from "../../styles/buttons";
+import colors from "../../styles/colors";
+import HeaderComponent from "../components/HeaderComponent";
 
 const categories = ["Kjøtt", "Kylling", "Fisk", "Vegetar"];
 
@@ -30,100 +32,55 @@ const SelectCategory = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <SafeAreaView />
+    <View style={containerStyles.defaultContainer}>
+      <HeaderComponent headerText={"Velg kategori"} leftButton={true} />
 
-      <View
-        style={[containerStyles.defaultContainer, { gap: 20, marginTop: 12 }]}
-      >
-        <Text style={fonts.header}>Velg råvarer</Text>
-        <View>
-          {/*           <Text style={fonts.subHeader}>Råvare</Text>
-           */}
-          <View
-            style={{
-              flexDirection: "row",
-              marginTop: 8,
-            }}
-          >
-            {categories.map((category) => (
-              <TouchableOpacity
-                key={category}
-                onPress={() => toggleCategory(category)}
-                style={[
-                  buttons.categoryBtn,
-                  {
-                    backgroundColor: selectedCategories.includes(category)
-                      ? "#185BF0"
-                      : "#FBFBFB",
-                  },
-                ]}
-              >
-                <Text
-                  style={{
-                    color: selectedCategories.includes(category)
-                      ? "#FFF"
-                      : "#007bff",
-                  }}
-                >
-                  {category}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-        {/* <View>
-          <Text style={fonts.subHeader}>Land</Text>
-          <View
-            style={{
-              flexDirection: "row",
-              marginTop: 8,
-            }}
-          >
-            {countries.map((country) => (
-              <TouchableOpacity
-                key={country}
-                onPress={() => toggleCountry(country)}
-                style={[
-                  buttons.categoryBtn,
-                  {
-                    backgroundColor: selectedCountries.includes(country)
-                      ? "#185BF0"
-                      : "#FBFBFB",
-                  },
-                ]}
-              >
-                <Text
-                  style={{
-                    color: selectedCountries.includes(country)
-                      ? "#FFF"
-                      : "#007bff",
-                  }}
-                >
-                  {country}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View> */}
+      <Text style={fonts.subHeader}>Råvare</Text>
 
-        <TouchableOpacity
-          onPress={() => {
-            navigation.navigate("CreateRecipe", {
-              selectedCategories: selectedCategories,
-            });
-          }}
-          style={{
-            paddingVertical: 12,
-            backgroundColor: "#007bff",
-            borderRadius: 50,
-          }}
-        >
-          <Text style={[fonts.btnBody, { alignSelf: "center", color: "#FFF" }]}>
-            Lagre Valg
-          </Text>
-        </TouchableOpacity>
+      <View style={{ gap: 12 }}>
+        {categories.map((category) => (
+          <TouchableOpacity
+            key={category}
+            onPress={() => toggleCategory(category)}
+            style={[
+              buttons.categoryBtn,
+              {
+                backgroundColor: selectedCategories.includes(category)
+                  ? colors.popColorSecondary
+                  : colors.white,
+              },
+            ]}
+          >
+            <Text
+              style={{
+                color: selectedCategories.includes(category)
+                  ? colors.popColor
+                  : colors.popColor,
+                fontWeight: "600",
+              }}
+            >
+              {category}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
+
+      <TouchableOpacity
+        onPress={() => {
+          navigation.navigate("CreateRecipe", {
+            selectedCategories: selectedCategories,
+          });
+        }}
+        style={{
+          paddingVertical: 12,
+          backgroundColor: colors.primary,
+          borderRadius: 50,
+        }}
+      >
+        <Text style={[fonts.btnBody, { alignSelf: "center", color: "#FFF" }]}>
+          Lagre Valg
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };

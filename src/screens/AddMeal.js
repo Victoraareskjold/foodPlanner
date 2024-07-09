@@ -95,6 +95,7 @@ export default function AddMeal({ route, navigation }) {
       date: day,
       recipeId: recipe.id,
       recipeTitle: recipe.title,
+      portions: recipe.portions, // Legg til porsjoner her
     };
 
     try {

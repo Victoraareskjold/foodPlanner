@@ -40,7 +40,7 @@ const ShoppingList = () => {
   const [showCompleted, setShowCompleted] = useState(false);
   const [familyId, setFamilyId] = useState(null);
   const [ingredientName, setIngredientName] = useState("");
-  const [quantity, setQuantity] = useState("1");
+  const [quantity, setQuantity] = useState(1);
   const [unit, setUnit] = useState("stk.");
   const [error, setError] = useState("");
 
@@ -52,9 +52,12 @@ const ShoppingList = () => {
     { label: "dl", value: "dl" },
     { label: "kg", value: "kg" },
     { label: "g", value: "g" },
+    { label: "ss", value: "ss" },
+    { label: "ts", value: "ts" },
   ]);
 
   const ingredientNameRef = useRef(null);
+  const deleteTimeout = useRef(null); // Legger til en ref for å holde timeout ID
 
   useEffect(() => {
     if (auth.currentUser) {
@@ -103,7 +106,6 @@ const ShoppingList = () => {
 
   const updateIngredientStatus = async (ingredient, completed) => {
     if (familyId) {
-      const weekId = getWeekId();
       const shoppingListRef = doc(
         db,
         "families",
@@ -112,6 +114,7 @@ const ShoppingList = () => {
         "ingredients"
       );
 
+      // Oppdater ingrediensens status i tilstanden
       const updatedIngredients = ingredients.map((ing) =>
         ing.name === ingredient.name && ing.unit === ingredient.unit
           ? { ...ing, completed }
@@ -126,20 +129,24 @@ const ShoppingList = () => {
 
       setIngredients(updatedIngredients);
 
-      if (completed) {
-        setTimeout(async () => {
-          const finalIngredients = updatedIngredients.filter(
-            (ing) =>
-              !(ing.name === ingredient.name && ing.unit === ingredient.unit)
-          );
-          await setDoc(
-            shoppingListRef,
-            { ingredients: finalIngredients },
-            { merge: true }
-          );
-          setIngredients(finalIngredients);
-        }, 5000); // 5 minutter i millisekunder
+      // Tilbakestill og start timeren på nytt
+      if (deleteTimeout.current) {
+        clearTimeout(deleteTimeout.current);
       }
+
+      deleteTimeout.current = setTimeout(async () => {
+        const finalIngredients = updatedIngredients.filter(
+          (ing) => !ing.completed
+        );
+
+        await setDoc(
+          shoppingListRef,
+          { ingredients: finalIngredients },
+          { merge: true }
+        );
+
+        setIngredients(finalIngredients);
+      }, 5000); // 5 sekunder i millisekunder
     }
   };
 
@@ -190,7 +197,7 @@ const ShoppingList = () => {
 
         setIngredients(updatedIngredients);
         setIngredientName("");
-        setQuantity("1");
+        setQuantity(1);
         setError("");
       }
       setTimeout(() => {
@@ -213,17 +220,17 @@ const ShoppingList = () => {
 
   const categorizedIngredients = () => {
     const categories = {
-      "🥩 Kjøtt": [],
-      "🥛 Meieri": [],
-      "🥐 Bakevarer": [],
-      "🧂 Krydder": [],
-      "🥕 Grønnsaker": [],
       "🍏 Frukt": [],
-      "🍝 Ferdigmat": [],
-      "🍲 Hermetikk": [],
+      "🥕 Grønnsaker": [],
+      "🥐 Bakevarer": [],
       "🍞 Brødvarer": [],
-      "🧀 Pålegg": [],
       "🧊 Frysevarer": [],
+      "🥩 Kjøtt": [],
+      "🍝 Ferdigmat": [],
+      "🧀 Pålegg": [],
+      "🧂 Krydder": [],
+      "🍲 Hermetikk": [],
+      "🥛 Meieri": [],
       Annet: [],
     };
 
@@ -320,26 +327,28 @@ const ShoppingList = () => {
             )
         )}
 
-        <TouchableOpacity
-          style={{ alignSelf: "center" }}
-          onPress={toggleCompletedList}
-        >
-          {showCompleted ? (
-            <View
-              style={{ flexDirection: "row", gap: 4, alignItems: "center" }}
-            >
-              <Text style={fonts.body2}>Skjul fullførte</Text>
-              <Invisible />
-            </View>
-          ) : (
-            <View
-              style={{ flexDirection: "row", gap: 4, alignItems: "center" }}
-            >
-              <Text style={fonts.body2}>Vis fullførte</Text>
-              <Visible />
-            </View>
-          )}
-        </TouchableOpacity>
+        {ingredients.length > 0 && (
+          <TouchableOpacity
+            style={{ alignSelf: "center" }}
+            onPress={toggleCompletedList}
+          >
+            {showCompleted ? (
+              <View
+                style={{ flexDirection: "row", gap: 4, alignItems: "center" }}
+              >
+                <Text style={fonts.body2}>Skjul fullførte</Text>
+                <Invisible />
+              </View>
+            ) : (
+              <View
+                style={{ flexDirection: "row", gap: 4, alignItems: "center" }}
+              >
+                <Text style={fonts.body2}>Vis fullførte</Text>
+                <Visible />
+              </View>
+            )}
+          </TouchableOpacity>
+        )}
         {showCompleted && (
           <View style={styles.list}>
             {renderIngredients(
@@ -363,7 +372,7 @@ const ShoppingList = () => {
           />
           <View style={{ flexDirection: "row", gap: 12 }}>
             <TextInput
-              value={quantity}
+              value={quantity.toString()}
               onChangeText={setQuantity}
               placeholder="Antall"
               style={[placeholderStyles.simple, { flex: 1 }]}
@@ -388,6 +397,7 @@ const ShoppingList = () => {
                 flex: 1,
                 backgroundColor: "white",
                 borderColor: colors.secondary,
+                height: 142,
               }}
               placeholder={value}
               open={open}

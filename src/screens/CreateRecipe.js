@@ -28,13 +28,13 @@ const CreateRecipe = () => {
   const route = useRoute();
   const [title, setTitle] = useState("");
   const [link, setLink] = useState("");
-  const [time, setTime] = useState("");
+  const [time, setTime] = useState();
 
   const { selectedCategories } = route.params ?? {};
   const [ingredients, setIngredients] = useState([]);
   const [ingredientName, setIngredientName] = useState("");
-  const [quantity, setQuantity] = useState("1");
-  const [portions, setPortions] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [portions, setPortions] = useState(2);
   const [unit, setUnit] = useState("stk.");
   const ingredientRefs = useRef([]);
 
@@ -46,6 +46,8 @@ const CreateRecipe = () => {
     { label: "dl", value: "dl" },
     { label: "kg", value: "kg" },
     { label: "g", value: "g" },
+    { label: "ss", value: "ss" },
+    { label: "ts", value: "ts" },
   ]);
 
   const [error, setError] = useState("");
@@ -72,7 +74,7 @@ const CreateRecipe = () => {
       setIngredients([...ingredients, newIngredient]);
       // Nullstiller inputfeltene
       setIngredientName("");
-      setQuantity("1");
+      setQuantity(1);
       /* setUnit(""); */
       setTimeout(() => {
         ingredientNameRef.current?.focus(); // Beholder fokus på TextInput med forsinkelse
@@ -287,7 +289,7 @@ const CreateRecipe = () => {
             />
             <View style={{ flexDirection: "row", gap: 12 }}>
               <TextInput
-                value={quantity}
+                value={quantity.toString()}
                 onChangeText={setQuantity}
                 placeholder="Antall"
                 style={[placeholderStyles.simple, { flex: 1 }]}
@@ -312,6 +314,7 @@ const CreateRecipe = () => {
                   flex: 1,
                   backgroundColor: "white",
                   borderColor: colors.secondary,
+                  height: 142,
                 }}
                 placeholder={value}
                 open={open}

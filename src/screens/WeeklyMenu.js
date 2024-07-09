@@ -9,6 +9,7 @@ import {
   ScrollView,
   Image,
   Alert,
+  TextInput,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { auth, db } from "../../firebase";
@@ -71,13 +72,14 @@ export default function WeeklyMenu() {
   const weekDates = useMemo(() => generateWeekDates(), []);
   const [familyId, setFamilyId] = useState(null);
   const [recipesForWeek, setRecipesForWeek] = useState({});
-
   const [ingredients, setIngredients] = useState([]);
+
   const [modalVisible, setModalVisible] = useState(false);
   const [completedIngredients, setCompletedIngredients] = useState([]);
   const [showCompleted, setShowCompleted] = useState(false);
   const [shoppingList, setShoppingList] = useState([]);
   const [image, setImage] = useState(null);
+
   const currentDate = getCurrentDate();
 
   useEffect(() => {
@@ -115,7 +117,7 @@ export default function WeeklyMenu() {
           if (docSnapshot.exists()) {
             const recipeId = docSnapshot.data().recipeId;
             console.log(`Recipe ID for ${date}:`, recipeId);
-            fetchRecipeDetails(recipeId, date);
+            fetchRecipeDetails(recipeId, date, docSnapshot.data().portions);
           } else {
             console.log(`No document found for ${date}`);
           }
@@ -129,14 +131,17 @@ export default function WeeklyMenu() {
     }
   }, [familyId, weekDates]);
 
-  const fetchRecipeDetails = async (recipeId, date) => {
+  const fetchRecipeDetails = async (recipeId, date, portions) => {
     if (!recipeId) return;
     const recipeDocRef = doc(db, "families", familyId, "recipes", recipeId);
     const recipeDocSnap = await getDoc(recipeDocRef);
     if (recipeDocSnap.exists()) {
       setRecipesForWeek((prevRecipes) => ({
         ...prevRecipes,
-        [date]: recipeDocSnap.data(),
+        [date]: {
+          ...recipeDocSnap.data(),
+          portions: portions, // Add portions from weeklyMenu
+        },
       }));
       setImage(recipeDocSnap.data().image);
     } else {
@@ -296,6 +301,7 @@ export default function WeeklyMenu() {
                 delete updatedRecipes[date];
                 return updatedRecipes;
               });
+              fetchRecipesForWeek();
             }
           },
           style: "destructive",
@@ -303,6 +309,30 @@ export default function WeeklyMenu() {
       ],
       { cancelable: true }
     );
+  };
+
+  const handlePortionsChange = async (date, newPortions) => {
+    setRecipesForWeek((prevRecipes) => ({
+      ...prevRecipes,
+      [date]: {
+        ...prevRecipes[date],
+        portions: newPortions,
+      },
+    }));
+
+    if (familyId) {
+      const weekMenuDocRef = doc(db, "families", familyId, "weekMenu", date);
+      try {
+        await setDoc(
+          weekMenuDocRef,
+          { portions: newPortions },
+          { merge: true }
+        );
+        console.log(`Updated portions for ${date} to ${newPortions}`);
+      } catch (error) {
+        console.error("Error updating portions: ", error);
+      }
+    }
   };
 
   const rightButton = () => (
@@ -378,10 +408,16 @@ export default function WeeklyMenu() {
                           {recipesForWeek[date].time} min
                         </Text>
                       </View>
-
                       <Text style={styles.recipeText}>
                         {recipesForWeek[date].categories.join(", ")}
                       </Text>
+                      <TextInput
+                        keyboardType="numeric"
+                        value={String(recipesForWeek[date]?.portions || "")}
+                        onChangeText={(text) =>
+                          handlePortionsChange(date, parseInt(text) || 0)
+                        }
+                      />
                     </View>
                     <View style={{ justifyContent: "center" }}>
                       <TouchableOpacity
@@ -402,7 +438,10 @@ export default function WeeklyMenu() {
                 <TouchableOpacity
                   style={styles.addButton}
                   onPress={() =>
-                    navigation.navigate("AddMeal", { currentDay: date })
+                    navigation.navigate("AddMeal", {
+                      currentDay: date,
+                      onMealAdded: fetchRecipesForWeek, // Sender tilbakeringingsfunksjonen
+                    })
                   }
                 >
                   <Text style={styles.addButtonText}>Legg til oppskrift</Text>
@@ -442,7 +481,7 @@ export default function WeeklyMenu() {
 
             <ScrollView
               contentContainerStyle={{ gap: 20 }}
-              style={{ overflow: "visible", zIndex: 0 }}
+              style={{ overflow: "hidden", zIndex: 0 }}
             >
               <View style={styles.list}>
                 {ingredients.map((ingredient, index) => (
