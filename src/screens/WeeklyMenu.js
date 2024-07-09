@@ -131,19 +131,24 @@ export default function WeeklyMenu() {
     }
   }, [familyId, weekDates]);
 
-  const fetchRecipeDetails = async (recipeId, date, portions) => {
+  const fetchRecipeDetails = async (recipeId, date, weeklyMenuPortions) => {
     if (!recipeId) return;
     const recipeDocRef = doc(db, "families", familyId, "recipes", recipeId);
     const recipeDocSnap = await getDoc(recipeDocRef);
     if (recipeDocSnap.exists()) {
+      const recipeData = recipeDocSnap.data();
+      const recipePortions = recipeData.portions;
+      const portionDifference = weeklyMenuPortions / recipePortions;
+
       setRecipesForWeek((prevRecipes) => ({
         ...prevRecipes,
         [date]: {
-          ...recipeDocSnap.data(),
-          portions: portions, // Add portions from weeklyMenu
+          ...recipeData,
+          portions: weeklyMenuPortions, // Set weeklyMenu portions
+          portionDifference: portionDifference, // Store the portion difference
         },
       }));
-      setImage(recipeDocSnap.data().image);
+      setImage(recipeData.image);
     } else {
       console.error(`No recipe found with id ${recipeId}`);
     }
@@ -159,7 +164,34 @@ export default function WeeklyMenu() {
       weekMenuSnap.forEach((docSnapshot) => {
         const data = docSnapshot.data();
         if (weekDates.includes(data.date)) {
-          recipeCounts[data.recipeId] = (recipeCounts[data.recipeId] || 0) + 1;
+          const recipeId = data.recipeId;
+          const portions = data.portions;
+
+          // Calculate the portion difference
+          const recipeDocRef = doc(
+            db,
+            "families",
+            familyId,
+            "recipes",
+            recipeId
+          );
+          getDoc(recipeDocRef).then((recipeDocSnap) => {
+            if (recipeDocSnap.exists()) {
+              const recipeData = recipeDocSnap.data();
+              const recipePortions = recipeData.portions;
+              const portionDifference = portions / recipePortions;
+
+              if (recipeCounts[recipeId]) {
+                recipeCounts[recipeId].count += 1;
+                recipeCounts[recipeId].portionDifference = portionDifference;
+              } else {
+                recipeCounts[recipeId] = {
+                  count: 1,
+                  portionDifference: portionDifference,
+                };
+              }
+            }
+          });
         }
       });
 
@@ -171,12 +203,17 @@ export default function WeeklyMenu() {
 
       let ingredientMap = {};
       recipesSnapshot.forEach((docSnapshot) => {
-        const count = recipeCounts[docSnapshot.id] || 0;
+        const recipeId = docSnapshot.id;
+        const count = recipeCounts[recipeId]?.count || 0;
+        const portionDifference =
+          recipeCounts[recipeId]?.portionDifference || 1;
+
         if (count > 0) {
           docSnapshot.data().ingredients?.forEach((ingredient) => {
             if (ingredient.name && ingredient.name.length > 1) {
               const key = `${ingredient.name.toLowerCase()}|${ingredient.unit}`;
-              const quantityToAdd = parseFloat(ingredient.quantity) * count;
+              const quantityToAdd =
+                parseFloat(ingredient.quantity) * count * portionDifference;
               if (!ingredientMap[key]?.completed) {
                 ingredientMap[key] = ingredientMap[key]
                   ? {
@@ -202,7 +239,32 @@ export default function WeeklyMenu() {
   }, [familyId, weekDates]);
 
   const addToShoppingList = () => {
-    setShoppingList(ingredients);
+    const adjustedIngredients = [];
+
+    Object.keys(recipesForWeek).forEach((date) => {
+      const recipe = recipesForWeek[date];
+      const portionDifference = recipe.portionDifference || 1;
+
+      recipe.ingredients.forEach((ingredient) => {
+        const adjustedQuantity = ingredient.quantity * portionDifference;
+        const existingIngredientIndex = adjustedIngredients.findIndex(
+          (ing) => ing.name === ingredient.name && ing.unit === ingredient.unit
+        );
+
+        if (existingIngredientIndex >= 0) {
+          adjustedIngredients[existingIngredientIndex].quantity +=
+            adjustedQuantity;
+        } else {
+          adjustedIngredients.push({
+            ...ingredient,
+            quantity: adjustedQuantity,
+          });
+        }
+      });
+    });
+
+    setShoppingList(adjustedIngredients);
+    setIngredients(adjustedIngredients); // Also update the ingredients shown in the modal
     setModalVisible(true);
   };
 
