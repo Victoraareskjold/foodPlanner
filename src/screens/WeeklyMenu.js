@@ -164,34 +164,7 @@ export default function WeeklyMenu() {
       weekMenuSnap.forEach((docSnapshot) => {
         const data = docSnapshot.data();
         if (weekDates.includes(data.date)) {
-          const recipeId = data.recipeId;
-          const portions = data.portions;
-
-          // Calculate the portion difference
-          const recipeDocRef = doc(
-            db,
-            "families",
-            familyId,
-            "recipes",
-            recipeId
-          );
-          getDoc(recipeDocRef).then((recipeDocSnap) => {
-            if (recipeDocSnap.exists()) {
-              const recipeData = recipeDocSnap.data();
-              const recipePortions = recipeData.portions;
-              const portionDifference = portions / recipePortions;
-
-              if (recipeCounts[recipeId]) {
-                recipeCounts[recipeId].count += 1;
-                recipeCounts[recipeId].portionDifference = portionDifference;
-              } else {
-                recipeCounts[recipeId] = {
-                  count: 1,
-                  portionDifference: portionDifference,
-                };
-              }
-            }
-          });
+          recipeCounts[data.recipeId] = (recipeCounts[data.recipeId] || 0) + 1;
         }
       });
 
@@ -203,17 +176,12 @@ export default function WeeklyMenu() {
 
       let ingredientMap = {};
       recipesSnapshot.forEach((docSnapshot) => {
-        const recipeId = docSnapshot.id;
-        const count = recipeCounts[recipeId]?.count || 0;
-        const portionDifference =
-          recipeCounts[recipeId]?.portionDifference || 1;
-
+        const count = recipeCounts[docSnapshot.id] || 0;
         if (count > 0) {
           docSnapshot.data().ingredients?.forEach((ingredient) => {
             if (ingredient.name && ingredient.name.length > 1) {
               const key = `${ingredient.name.toLowerCase()}|${ingredient.unit}`;
-              const quantityToAdd =
-                parseFloat(ingredient.quantity) * count * portionDifference;
+              const quantityToAdd = parseFloat(ingredient.quantity) * count;
               if (!ingredientMap[key]?.completed) {
                 ingredientMap[key] = ingredientMap[key]
                   ? {
